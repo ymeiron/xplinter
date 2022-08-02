@@ -1,0 +1,50 @@
+?program: version python_module? (statement)*
+version: "XPLINTER VERSION" /[\d\.]+/ "\n"
+python_module: "LOAD PYTHON" /.+/ "\n"
+?statement: entity_statement | view_statement | kv_statement
+entity_statement: [root_entity] "ENTITY" entity_name "(" cardinality ["," parent] ["," generator] ")" "{" field_list "}"
+root_entity: "ROOT"
+entity_name: ENTITY_NAME
+ENTITY_NAME: "*"? CNAME
+cardinality: CARDINALITY
+CARDINALITY: "ONE" | "ZERO OR ONE" | "ONE OR MORE" | "ZERO OR MORE"
+parent: ENTITY_NAME
+field_list: field_descriptor ("," field_descriptor)*
+field_descriptor: field_name [flag] field_type generator_list
+field_name: FIELD_NAME
+FIELD_NAME: "*"? CNAME
+!flag: "OPT"
+field_type: type_name ("(" type_size ")")?
+type_name: UCASE_WORD
+UCASE_WORD: ("A".."Z")+
+type_size: INT
+generator_list: generator ("@" generator)*
+generator: GENERATOR_TYPE "(" generator_content ")"
+GENERATOR_TYPE: "XPATH" | "PYTHON" | "HASH" | "PARENTFIELD" | "NULL"
+generator_content: parens_content ("(" generator_content ")")? parens_content
+parens_content: ANYTHING_IN_PARENS*
+ANYTHING_IN_PARENS: /[^\)]/ | "()"
+!python_expression: CNAME
+view_statement: "VIEW" view_name "OF" entity_name "{" alias_list "}"
+view_name: CNAME
+alias_list: alias_descriptor ("," alias_descriptor)*
+alias_descriptor: field_name ["AS" alias]
+alias: CNAME
+kv_statement: "KVENTITY" entity_name \
+              "{" \
+                "KV{" kv_descriptor_list "}," \
+                kv_special_field_list \
+              "}"
+kv_special_field_list: kv_special_field_descriptor ("," kv_special_field_descriptor)*
+kv_special_field_descriptor: kv_special_field_type "AS" field_name
+!kv_special_field_type: "KEY" | "VALUE" | "HASH" | /PARENTFIELD\(\d+\)/
+kv_descriptor_list: kv_descriptor ("," kv_descriptor)*
+kv_descriptor: kv_key_name generator
+kv_key_name: CNAME
+
+%import common.SH_COMMENT
+%ignore SH_COMMENT
+%import common.CNAME
+%import common.INT
+WS.-1: /[ \t\f\r\n]/+
+%ignore WS

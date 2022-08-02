@@ -1,0 +1,46 @@
+<record>
+  <uid>100001</uid>
+  <info year="2022"></info>
+  <title>The anatomy of the blue panda</title>
+  <authors>
+    <author>
+      <full_name>San Zhang</full_name>
+    </author>
+    <author>
+      <full_name>Si Li</full_name>
+    </author>
+  </authors>
+  <conferences>
+    <conference>
+      <uid>CCND4810</uid>
+      <name>Lanjing University Blue Panda Symposium</name>
+      <date>2022-05-27</date>
+      <city>Lanjing</city>
+      <sponsor>
+        <name>WWF</name>
+        <established>1961</established>
+      </sponsor>
+      <sponsor>
+        <name>Conservation International</name>
+        <established>1987</established>
+      </sponsor>
+      <sponsor>
+        <name>Lansheng Province</name>
+      </sponsor>
+    </conference>
+    <conference>
+      <uid>CCND5008</uid>
+      <name>71st International Conference on Ailuropodinae</name>
+      <date>2019-09-30</date>
+      <city>Los Ursae</city>
+      <sponsor>
+        <name>Save the Pandas</name>
+        <established>2005</established>
+      </sponsor>
+      <sponsor>
+        <name>WWF</name>
+        <established>1961</established>
+      </sponsor>
+    </conference>
+  </conferences>
+</record>
