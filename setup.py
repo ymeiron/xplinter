@@ -10,7 +10,7 @@ setup(name='xplinter',
     description='An easy-to-use XML shredder',
     author='Yohai Meiron',
     author_email='yohai.meiron@scinet.utoronto.ca',
-    packages=['xplinter'],
+    packages=['xplinter', 'xplinter.drivers'],
     package_data={
         '': ['xplinter.lark']
     }
