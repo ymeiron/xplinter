@@ -1,5 +1,5 @@
 from xplinter.record_generator import Generate_record
-from xplinter import Cardinality, Record
+from xplinter import Record
 from lxml import etree
 import os
 
@@ -29,21 +29,15 @@ generate_record = Generate_record()
 # Generating the record parser
 with open('wos.xplinter', 'r') as f:
     content = f.read()
-record = generate_record(content)
+record = generate_record(content, driver=Csv_driver(output_data_dir))
 
 # Obtaining the XML tree
 with open(os.path.join(input_data_dir, input_filename), 'rb') as f:
     tree = etree.fromstring(f.read(), None)
     #tree = [tree.getchildren()[0]]
 
-# Clean up output directory:
-driver = Csv_driver(record, output_data_dir)
-driver.open()
-driver.reset()
-
 for node in tree:
     record.process(node)
     postprocess(record)
-    driver.write()
+    record.write()
     record.reset()
-driver.close()

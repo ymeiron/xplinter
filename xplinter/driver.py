@@ -1,6 +1,10 @@
 from abc import ABC, abstractmethod
 class Driver(ABC):
     @abstractmethod
+    def set_record(self, record):
+        ...
+
+    @abstractmethod
     def open(self):
         ...
 

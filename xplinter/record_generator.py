@@ -1,6 +1,7 @@
 from lark.lark import Lark, Token
 from lark.visitors import Interpreter
-from typing import List, Tuple
+from typing import List, Tuple, Optional
+from .driver import Driver
 from xplinter import Field, Hash_field, Normal_field, Parent_field, Data_type, Cardinality, Entity, Record, View, Kv_extractor, Kv_entity
 import importlib, os
 
@@ -205,11 +206,12 @@ class Generate_record: # Create a singleton object in this module
             grammar = f.read()
         self.parser = Lark(grammar, start='program', parser='lalr')
         self.xplinter_interpreter = Xplinter_interpreter()
-    def __call__(self, content: str, commit: bool = True) -> Record:
+    def __call__(self, content: str, commit: bool = True, driver: Optional[Driver] = None) -> Record:
         parse_tree = self.parser.parse(content)
         record = self.xplinter_interpreter(parse_tree)
         if commit:
             record.commit()
+        record.set_driver(driver)
         return record
 
 if __name__ == '__main__':

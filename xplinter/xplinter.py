@@ -1,4 +1,5 @@
 from typing import List, Callable, Optional, Any, Dict, Tuple
+from .driver import Driver
 from enum import Enum
 from lxml import etree
 import pandas as pd
@@ -237,11 +238,20 @@ class Kv_entity(Entity):
         self.kv_extractor.reset()
 
 class Record:
-    def __init__(self):
+    def __init__(self, driver: Optional[Driver] = None):
         self.entity_dict: Dict[str,Entity] = {}
         self.root: Optional[Entity] = None
         self.view_dict: Dict[str,View] = {}
         self.commited: bool = False
+        self.set_driver(driver)
+    def __del__(self):
+        if hasattr(self, 'driver'):
+            self.driver.close()
+    def set_driver(self, driver: Optional[Driver]):
+        if driver:
+            driver.set_record(self)
+            driver.open()
+            self.driver = driver
     def reset(self):
         for entity in self.entity_dict.values():
             entity.reset()
@@ -278,6 +288,10 @@ class Record:
         self.root_entity.process(tree)
         for view in self.view_dict.values():
             view.copy_data_from_entity()
+    def write(self):
+        if not hasattr(self, 'driver'):
+            raise RuntimeError('Cannot write because no writing driver was set')
+        self.driver.write()
 
 
 if __name__ == '__main__':
