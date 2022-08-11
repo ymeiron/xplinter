@@ -1,0 +1,30 @@
+XPLINTER VERSION 0.0.1
+
+ROOT ENTITY branch (ONE) {
+    id          BIGINT  HASH(name),
+    name        TEXT    XPATH(name),
+    address     TEXT    XPATH(address/address_line),
+    city        TEXT    XPATH(address/city),
+    province    TEXT    XPATH(address/province),
+    postal_code CHAR(7) XPATH(address/postal_code)
+}
+
+ENTITY employee (ZERO OR MORE, branch, XPATH(employees/employee)) {
+    id          INTEGER XPATH(id),
+    family_name TEXT    XPATH(name) @ PYTHON(lambda name: name.split()[1]),
+    given_name  TEXT    XPATH(name) @ PYTHON(lambda name: name.split()[0]),
+    status      TEXT    XPATH(@status),
+    branch_id   BIGINT  PARENTFIELD(0),
+    supervisor_id OPT INTEGER XPATH(supervisor/@id)
+}
+
+ENTITY intern (ZERO OR MORE, employee, XPATH(interns/intern)) {
+    id          INTEGER XPATH(id),
+    full_name   TEXT    XPATH(name),
+    *mentor_id  INTEGER PARENTFIELD(0),
+    branch_id   BIGINT  PARENTFIELD(4)
+}
+
+VIEW intern_employee OF intern {
+    id AS intern_id, *mentor_id AS employee_id
+}

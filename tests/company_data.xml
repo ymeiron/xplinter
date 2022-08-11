@@ -1,0 +1,176 @@
+<?xml version = "1.0"?>
+<records>
+  <branch>
+    <name>Toronto Centre</name>
+    <address>
+      <address_line>700 University Ave.</address_line>
+      <city>Toronto</city>
+      <province>ON</province>
+      <postal_code>M5G 1M1</postal_code>
+    </address>
+    <employees>
+      <employee status="active">
+        <id>1001</id>
+        <name>Susan Morin</name>
+        <supervisor id="1005">Kim Lee</supervisor>
+        <interns>
+          <intern>
+            <id>2001</id>
+            <name>Olivia Johnson</name>
+          </intern>
+          <intern>
+            <id>2002</id>
+            <name>Amelia Côté</name>
+          </intern>
+        </interns>
+      </employee>
+      <employee status="active">
+        <id>1002</id>
+        <name>Kelly Martin</name>
+      </employee>
+      <employee status="active">
+        <id>1003</id>
+        <name>Mary Wilson</name>
+        <supervisor id="1005">Kim Lee</supervisor>
+        <interns>
+          <intern>
+            <id>2001</id>
+            <name>Olivia Johnson</name>
+          </intern>
+          <intern>
+            <id>2003</id>
+            <name>William Tremblay</name>
+          </intern>
+        </interns>
+      </employee>
+      <employee status="active">
+        <id>1004</id>
+        <name>Nancy Brown</name>
+        <supervisor id="1002">Kelly Martin</supervisor>
+      </employee>
+      <employee status="active">
+        <id>1005</id>
+        <name>Kim Lee</name>
+        <supervisor id="1002">Kelly Martin</supervisor>
+        <interns>
+          <intern>
+            <id>2004</id>
+            <name>Benjamin Taylor</name>
+          </intern>
+        </interns>
+      </employee>
+      <employee status="active">
+        <id>1006</id>
+        <name>Richard Smith</name>
+        <supervisor id="1005">Kim Lee</supervisor>
+        <interns>
+          <intern>
+            <id>2005</id>
+            <name>Ethan Jones</name>
+          </intern>
+          <intern>
+            <id>2006</id>
+            <name>Emma Jones</name>
+          </intern>
+        </interns>
+      </employee>
+      <employee status="active">
+        <id>1007</id>
+        <name>Kim Fortin</name>
+        <supervisor id="1004">Nancy Brown</supervisor>
+        <interns>
+          <intern>
+            <id>2006</id>
+            <name>Emma Jones</name>
+          </intern>
+        </interns>
+      </employee>
+    </employees>
+  </branch>
+  <branch>
+    <name>Toronto North York</name>
+    <address>
+      <address_line>5600 Yonge St.</address_line>
+      <city>Toronto</city>
+      <province>ON</province>
+      <postal_code>M2N 5S2</postal_code>
+    </address>
+    <employees>
+      <employee status="active">
+        <id>1008</id>
+        <name>Nancy Roy</name>
+        <interns>
+          <intern>
+            <id>2007</id>
+            <name>Noah King</name>
+          </intern>
+          <intern>
+            <id>2008</id>
+            <name>Lucas Li</name>
+          </intern>
+        </interns>
+      </employee>
+      <employee status="active">
+        <id>1009</id>
+        <name>James Brown</name>
+        <supervisor id="1008">Nancy Roy</supervisor>
+      </employee>
+    </employees>
+  </branch>
+  <branch>
+    <name>Montreal</name>
+    <address>
+      <address_line>677 Saint-Catherine St W</address_line>
+      <city>Montreal</city>
+      <province>QC</province>
+      <postal_code>H3B 5K0</postal_code>
+    </address>
+    <employees>
+      <employee status="active">
+        <id>1010</id>
+        <name>Mary Wilson</name>
+        <supervisor id="1011">David MacDonald</supervisor>
+      </employee>
+      <employee status="active">
+        <id>1011</id>
+        <name>David MacDonald</name>
+      </employee>
+      <employee status="active">
+        <id>1012</id>
+        <name>Paul Bouchard</name>
+        <supervisor id="1011">David MacDonald</supervisor>
+        <interns>
+          <intern>
+            <id>2009</id>
+            <name>Oliver Scott</name>
+          </intern>
+          <intern>
+            <id>2010</id>
+            <name>Benjamin Gagné</name>
+          </intern>
+        </interns>
+      </employee>
+      <employee status="active">
+        <id>1013</id>
+        <name>Michelle Martin</name>
+        <supervisor id="1011">David MacDonald</supervisor>
+        <interns>
+          <intern>
+            <id>2010</id>
+            <name>Benjamin Gagné</name>
+          </intern>
+        </interns>
+      </employee>
+      <employee status="active">
+        <id>1014</id>
+        <name>Michael Roy</name>
+        <supervisor id="1011">David MacDonald</supervisor>
+      </employee>
+      <employee status="active">
+        <id>1015</id>
+        <name>Paul Lavoie</name>
+        <supervisor id="1011">David MacDonald</supervisor>
+      </employee>
+    </employees>
+  </branch>
+</records>
