@@ -1,12 +1,12 @@
 from xplinter.record_generator import Generate_record
-from xplinter.drivers import Csv_driver
+from xplinter.drivers import Csv_driver, Pgsql_driver
 from lxml import etree
 
 xplinter_filename = 'company.xplinter'
 with open(xplinter_filename, 'r') as f:
     content = f.read()
 generate_record = Generate_record()
-record = generate_record(content, driver=Csv_driver('.'))
+record = generate_record(content, driver=Pgsql_driver({'host':'idb1', 'dbname':'ymeiron_db0'}))
 record.driver.reset()
 
 input_filename = 'company_data.xml'
