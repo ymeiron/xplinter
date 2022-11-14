@@ -16,6 +16,11 @@ class Data_type(Enum):
     char     = 9
     unknown  = 10
 
+    @staticmethod
+    def code(data_type) -> Optional[str]: # Make data_type "Self" type in Python 3.11
+        codes = [None, 'h', 'i', 'q', 'f', 'd', None, None, '?', 'c', None]
+        return codes[data_type.value]
+
 def cast(value: str, data_type: Data_type) -> Any:
     if data_type in [Data_type.smallint, Data_type.integer, Data_type.bigint]:
         return int(value)
@@ -43,9 +48,7 @@ class Normal_field(Field):
                 self._xpath = etree.XPath(xpath)
             except etree.XPathSyntaxError:
                 raise RuntimeError(f"XPath syntax error in field '{name}': cannot process '{xpath}'")
-        self._func = lambda x: x
-        if isinstance(func, Callable):
-            self._func = func
+        self._func = func
         self.optional = optional
     def process(self, node: etree._Element) -> Optional[Any]: # None is part of Any, so Optional[Any] means nothing
         if self._xpath:
@@ -63,7 +66,10 @@ class Normal_field(Field):
                 return self._func(result)
             return cast(result, self.data_type)
         else:
-            return self._func(node)
+            if self._func:
+                return self._func(node)
+            else:
+                raise RuntimeError # Shouldn't be here
 
 class Parent_field(Field):
     def __init__(self, name: str, column_number: int, data_type: Data_type, type_size: int = 0):
