@@ -141,6 +141,9 @@ class Entity:
             row = []
             for field in self.field_list:
                 value = field.process(node)
+                if ((field.data_type == Data_type.text) or (field.data_type == Data_type.char)) and (field.type_size > 0):
+                    if len(value) > field.type_size:
+                        raise RuntimeError(f'Value of field `{field.name}` is "{value}" and too long (maximum {field.type_size} characters)')
                 if isinstance(field, Parent_field):
                     value = parent_data[field.column_number]
                 row.append(value)
