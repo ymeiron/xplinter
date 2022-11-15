@@ -1,8 +1,8 @@
-from typing import List, Callable, Optional, Any, Dict, Tuple
+from typing import List, Callable, Optional, Any, Dict, Tuple, Iterable
 from .driver import Driver
 from enum import Enum
 from lxml import etree
-import pandas as pd
+import pandas as pd, hashlib, struct
 
 class Data_type(Enum):
     smallint = 1
@@ -27,6 +27,32 @@ def cast(value: str, data_type: Data_type) -> Any:
     if (data_type == Data_type.text) or (data_type == Data_type.char):
         return value
     raise NotImplemented
+
+def hash_function(data: Iterable, positive: bool = True, full_hex: bool = False):
+    m = hashlib.md5()
+    for datum in data:
+        if   isinstance(datum, str):
+            datum_serialized = datum.encode('utf-8')
+        elif isinstance(datum, int):
+            datum_serialized = datum.to_bytes(8, 'big')
+        elif datum is None:
+            datum_serialized = b'\0'
+        elif isinstance(datum, bytes):
+            datum_serialized = datum
+        else:
+            raise RuntimeError('Unexpected type to hash')
+
+        m.update(datum_serialized)
+
+    digest = m.digest()
+
+    if full_hex:
+        return digest.hex()
+
+    id, _ = struct.unpack('!2q', digest)
+    if positive:
+        id = abs(id)
+    return id
 
 class Field:
     """This class contains just the description of the field and how to obtain the data. No data is actually stored here."""
@@ -155,7 +181,7 @@ class Entity:
                 for other_field_name in field.fields_to_hash:
                     other_idx = self.get_field_index(other_field_name)
                     data_to_hash.append(row[other_idx])
-                row[idx] = hash(tuple(data_to_hash))
+                row[idx] = hash_function(data_to_hash)
             self.data.append(row)
             for child_entity in self.children:
                 child_entity.process(node, row)
@@ -236,7 +262,7 @@ class Kv_entity(Entity):
                 elif field._meta == 'VALUE':
                     datum = kv[1]
                 elif field._meta == 'HASH':
-                    datum = hash(kv)
+                    datum = hash_function(kv)
                 elif field._meta.startswith('PARENTFIELD'):
                     idx = int(field._meta[12:-1])
                     datum = parent_data[idx]
