@@ -94,7 +94,12 @@ class Pgsql_driver(Driver):
             self.tables[entity_name] = [(field.name, field.data_type) for field in entity.field_list if not field.name.startswith('*')]
             self.table_buffers[entity_name] = Table(self.tables[entity_name])
         for view_name, view in record.view_dict.items():
-            self.tables[view_name] = [(col, Data_type.integer) for col in view.columns]
+            if view.entity is None:
+                raise RuntimeError
+            self.tables[view_name] = []
+            for col, idx in zip(view.columns, view.indices):
+                field = view.entity.field_list[idx]
+                self.tables[view_name].append((col, field.data_type))
             self.table_buffers[view_name] = Table(self.tables[view_name])
         self._record: Record = record
         
