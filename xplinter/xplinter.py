@@ -24,7 +24,7 @@ class Data_type(Enum):
 def cast(value: str, data_type: Data_type) -> Any:
     if data_type in [Data_type.smallint, Data_type.integer, Data_type.bigint]:
         return int(value)
-    if data_type == Data_type.text:
+    if (data_type == Data_type.text) or (data_type == Data_type.char):
         return value
     raise NotImplemented
 

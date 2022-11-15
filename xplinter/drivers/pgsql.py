@@ -19,16 +19,15 @@ class Table:
         A byte buffer containing the table data.
     """
 
-    def __init__(self, fields: List[Tuple[str,Data_type]]):
+    def __init__(self, fields: List[Tuple[str,Data_type,int]]):
         """Construct a Table object.
         
         Parameters
         ----------
-        fields : List[Tuple[str,Data_type]]
-            Each element in this list is a tuple of strings, where the first
-            element is the name of the field and the second is a single
-            character indicating the type, following the format character
-            meaning in the Python struct module.
+        fields : List[Tuple[str,Data_type,int]]
+            Each element in this list is a tuple, where the first element is the
+            name of the field, the second is a single data type, and the third
+            the size (in case of char or text fields).
         """
 
         self.header = b'\x50\x47\x43\x4F\x50\x59\x0A\xFF\x0D\x0A\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -53,14 +52,14 @@ class Table:
         """
 
         self.buffer.write(self.field_count_bytes)
-        for i, (field_name, data_type) in enumerate(self.fields):
+        for i, (field_name, data_type, _) in enumerate(self.fields):
             if field_name.startswith('*'):
                continue
             value = datum[i]
             if value is None:
                 self.buffer.write(b'\xFF\xFF\xFF\xFF')
                 continue
-            if data_type == Data_type.text:
+            if (data_type == Data_type.text) or (data_type == Data_type.char):
                 value = value.encode('utf-8')
                 string_size = len(value)
                 self.buffer.write(struct.pack(f'!i', string_size))
@@ -82,7 +81,7 @@ class Table:
 class Pgsql_driver(Driver):
     def __init__(self, db_config, reset: bool = False):
         self.db_config = db_config
-        self.tables: Dict[str, List[Tuple[str, Data_type]]] = {}
+        self.tables: Dict[str, List[Tuple[str, Data_type, int]]] = {}
         self._open: bool = False
         if reset:
             raise NotImplementedError
@@ -91,7 +90,7 @@ class Pgsql_driver(Driver):
         for entity_name, entity in record.entity_dict.items():
             if entity_name.startswith('*'):
                 continue
-            self.tables[entity_name] = [(field.name, field.data_type) for field in entity.field_list if not field.name.startswith('*')]
+            self.tables[entity_name] = [(field.name, field.data_type, field.type_size) for field in entity.field_list if not field.name.startswith('*')]
             self.table_buffers[entity_name] = Table(self.tables[entity_name])
         for view_name, view in record.view_dict.items():
             if view.entity is None:
@@ -99,7 +98,7 @@ class Pgsql_driver(Driver):
             self.tables[view_name] = []
             for col, idx in zip(view.columns, view.indices):
                 field = view.entity.field_list[idx]
-                self.tables[view_name].append((col, field.data_type))
+                self.tables[view_name].append((col, field.data_type, field.type_size))
             self.table_buffers[view_name] = Table(self.tables[view_name])
         self._record: Record = record
         
@@ -115,10 +114,14 @@ class Pgsql_driver(Driver):
         if not self._open: raise RuntimeError('PostgreSQL driver `reset` attempted while driver not open')
         for table_name, field_list in self.tables.items():
             columns_string = ''
-            for field in field_list[:-1]:
-                columns_string += field[0] + ' ' + field[1].name.upper() + ', '
-            field = field_list[-1]
-            columns_string += field[0] + ' ' + field[1].name.upper()
+            for field_tuple in field_list:
+                print(field_tuple)
+                field_name, field_type, type_size = field_tuple
+                type_string = field_type.name.upper()
+                if ((field_type == Data_type.char) or (field_type == Data_type.text)) and (type_size > 0):
+                    type_string += f'({type_size})'
+                columns_string += field_name + ' ' + type_string + ', '
+            columns_string = columns_string[:-2] # Get rid of last comma and space
             self.cur.execute(f'DROP TABLE IF EXISTS {table_name} CASCADE')
             self.cur.execute(f'CREATE TABLE {table_name} ({columns_string})')
     def write(self):

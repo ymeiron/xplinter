@@ -146,7 +146,7 @@ class Xplinter_interpreter(Interpreter):
         type_size       = 0
         if len(field_type_node.children) == 2:
             type_size_node = field_type_node.children[1]
-            type_size      = type_size_node.children[0].value
+            type_size      = int(type_size_node.children[0].value)
 
         # Deal with the generators (using a separate interpreter class)
         generator_list = self.generator_interp(generator_node)
