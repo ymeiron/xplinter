@@ -24,7 +24,7 @@ class Table:
         
         Parameters
         ----------
-        fields : List[Tuple[str,str]]
+        fields : List[Tuple[str,Data_type]]
             Each element in this list is a tuple of strings, where the first
             element is the name of the field and the second is a single
             character indicating the type, following the format character

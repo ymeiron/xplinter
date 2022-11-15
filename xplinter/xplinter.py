@@ -178,6 +178,8 @@ class View:
     def reset(self):
          self.data = []
     def copy_data_from_entity(self):
+        if self.entity is None:
+            raise RuntimeError
         for row in self.entity.data:
             new_row = [row[i] for i in self.indices]
             self.data.append(new_row)
@@ -248,7 +250,7 @@ class Record:
         self.entity_dict: Dict[str,Entity] = {}
         self.root: Optional[Entity] = None
         self.view_dict: Dict[str,View] = {}
-        self.commited: bool = False
+        self.committed: bool = False
         self.set_driver(driver)
     def __del__(self):
         if hasattr(self, 'driver'):
@@ -265,7 +267,7 @@ class Record:
             view.reset()
     def add_entity(self, entity: Entity, root: bool = False) -> None:
         # TODO check that all entities that were added descend from the root entity
-        if self.commited:
+        if self.committed:
             raise RuntimeError(f'Record already committed, cannot add new entities')
         if entity.name in self.entity_dict.keys():
             raise RuntimeError(f'Entity `{entity.name}` already exists')
@@ -273,7 +275,7 @@ class Record:
         if root:
             self.root_entity = entity
     def add_view(self, view: View) -> None:
-        if self.commited:
+        if self.committed:
             raise RuntimeError(f'Record already committed, cannot add new views')
         self.view_dict[view.name] = view
     def commit(self):
@@ -289,7 +291,7 @@ class Record:
             if not entity:
                 raise RuntimeError(f'View `{view.name}` depends on entity `{entity_name}`, but none named such was found in record')
             view.set_entity(entity)
-        self.commited = True
+        self.committed = True
     def process(self, tree):
         self.root_entity.process(tree)
         for view in self.view_dict.values():
