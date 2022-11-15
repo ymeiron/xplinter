@@ -115,7 +115,6 @@ class Pgsql_driver(Driver):
         for table_name, field_list in self.tables.items():
             columns_string = ''
             for field_tuple in field_list:
-                print(field_tuple)
                 field_name, field_type, type_size = field_tuple
                 type_string = field_type.name.upper()
                 if ((field_type == Data_type.char) or (field_type == Data_type.text)) and (type_size > 0):
