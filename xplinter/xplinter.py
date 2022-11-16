@@ -4,6 +4,8 @@ from enum import Enum
 from lxml import etree
 import pandas as pd, hashlib, struct
 
+STRIP_STRINGS: bool = True
+
 class Data_type(Enum):
     smallint = 1
     integer  = 2
@@ -22,9 +24,13 @@ class Data_type(Enum):
         return codes[data_type.value]
 
 def cast(value: str, data_type: Data_type) -> Any:
+    if value is None:
+        return None
     if data_type in [Data_type.smallint, Data_type.integer, Data_type.bigint]:
         return int(value)
     if (data_type == Data_type.text) or (data_type == Data_type.char):
+        if STRIP_STRINGS:
+            return value.strip()
         return value
     raise NotImplemented
 
