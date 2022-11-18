@@ -65,6 +65,11 @@ class Table:
                 self.buffer.write(struct.pack(f'!i', string_size))
                 self.buffer.write(value)
                 continue
+            if data_type == Data_type.xml:
+                blob_size = len(value)
+                self.buffer.write(struct.pack(f'!i', blob_size))
+                self.buffer.write(value)
+                continue
             field_type_code = Data_type.code(data_type)
             if field_type_code is None:
                 raise NotImplemented

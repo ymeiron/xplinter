@@ -16,11 +16,12 @@ class Data_type(Enum):
     date     = 7
     boolean  = 8
     char     = 9
-    unknown  = 10
+    xml      = 10
+    unknown  = 11
 
     @staticmethod
     def code(data_type) -> Optional[str]: # Make data_type "Self" type in Python 3.11
-        codes = [None, 'h', 'i', 'q', 'f', 'd', None, None, '?', 'c', None]
+        codes = [None, 'h', 'i', 'q', 'f', 'd', None, None, '?', 'c', 'b', None]
         return codes[data_type.value]
 
 def cast(value: str, data_type: Data_type) -> Any:
@@ -33,6 +34,9 @@ def cast(value: str, data_type: Data_type) -> Any:
             return value.strip()
         return value
     raise NotImplemented
+
+def xml_serialize(node: etree._Element):
+        return etree.tostring(node, method="c14n2", strip_text=True)
 
 def hash_function(data: Iterable, positive: bool = True, full_hex: bool = False):
     m = hashlib.md5()
@@ -92,6 +96,8 @@ class Normal_field(Field):
             if len(result) != 1:
                 raise RuntimeError(f'XPATH({self._xpath.path}) for field `{self.name}` expected exactly one result for field but got {len(result)}')
             result = result[0]
+            if self.data_type == Data_type.xml:
+                return xml_serialize(result)
             if type(result) == etree._Element:
                 result = result.text
             if self._func:
