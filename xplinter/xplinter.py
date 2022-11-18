@@ -76,7 +76,15 @@ class Field:
         return None
 
 class Normal_field(Field):
-    def __init__(self, name: str, data_type: Data_type, xpath: Optional[str], type_size: int = 0, optional: bool = False, func: Optional[Callable] = None):
+    def __init__(self,
+        name: str,
+        data_type: Data_type,
+        xpath: Optional[str],
+        type_size: int = 0,
+        optional: bool = False,
+        func: Optional[Callable] = None,
+        func_arg_is_text: bool = False
+    ):
         super().__init__(name, data_type, type_size)
         self._xpath = None
         if xpath:
@@ -86,6 +94,7 @@ class Normal_field(Field):
                 raise RuntimeError(f"XPath syntax error in field '{name}': cannot process '{xpath}'")
         self._func = func
         self.optional = optional
+        self.func_arg_is_text = func_arg_is_text
     def process(self, node: etree._Element) -> Optional[Any]: # None is part of Any, so Optional[Any] means nothing
         if self._xpath:
             result = self._xpath(node)
@@ -98,10 +107,12 @@ class Normal_field(Field):
             result = result[0]
             if self.data_type == Data_type.xml:
                 return xml_serialize(result)
-            if type(result) == etree._Element:
-                result = result.text
-            if self._func:
+            if not self._func is None:
+                if isinstance(result, etree._Element) and self.func_arg_is_text:
+                    result = result.text
                 return self._func(result)
+            if isinstance(result, etree._Element):
+                result = result.text
             return cast(result, self.data_type)
         else:
             if self._func:

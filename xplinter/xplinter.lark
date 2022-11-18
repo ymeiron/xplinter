@@ -20,7 +20,7 @@ UCASE_WORD: ("A".."Z")+
 type_size: INT
 generator_list: generator ("@" generator)*
 generator: GENERATOR_TYPE "(" generator_content ")"
-GENERATOR_TYPE: "XPATH" | "PYTHON" | "HASH" | "PARENTFIELD" | "NULL"
+GENERATOR_TYPE: "XPATH" | "PYTHON" | "TOTEXT" | "HASH" | "PARENTFIELD" | "NULL"
 generator_content: parens_content ("(" generator_content ")")? parens_content
 parens_content: ANYTHING_IN_PARENS*
 ANYTHING_IN_PARENS: /[^\)]/ | "()"

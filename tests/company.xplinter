@@ -5,14 +5,14 @@ ROOT ENTITY branch (ONE) {
     name        TEXT    XPATH(name),
     address     TEXT    XPATH(address/address_line),
     city        TEXT    XPATH(address/city),
-    province    TEXT    XPATH(address/province),
+    province    CHAR(2) XPATH(address/province),
     postal_code CHAR(7) XPATH(address/postal_code)
 }
 
 ENTITY employee (ZERO OR MORE, branch, XPATH(employees/employee)) {
     id          INTEGER XPATH(id),
-    family_name TEXT    XPATH(name) @ PYTHON(lambda name: name.split()[1]),
-    given_name  TEXT    XPATH(name) @ PYTHON(lambda name: name.split()[0]),
+    family_name TEXT    XPATH(name) @ TOTEXT() @ PYTHON(lambda name: name.split()[1]),
+    given_name  TEXT    XPATH(name) @ TOTEXT() @ PYTHON(lambda name: name.split()[0]),
     status      TEXT    XPATH(@status),
     branch_id   BIGINT  PARENTFIELD(0),
     supervisor_id OPT INTEGER XPATH(supervisor/@id)

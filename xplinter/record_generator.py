@@ -40,39 +40,38 @@ def create_field_helper(field_name: str, type_name: str, type_size: int, generat
     if generator_types == ['NULL']:
         field = Field(field_name, field_type, type_size)
         return field
-    if 'HASH' in generator_types:
-        if len(generator_types) != 1:
-            raise RuntimeError(f'Genertor list of field `{field_name}` contains HASH, but HASH can only be in a one-generator lists')
+    if generator_types == ['HASH']:
         generator_params = generator_list[0][1]
         dependent_field_names = [field_name.strip() for field_name in generator_params.split(',')]
         if type_name != 'BIGINT':
             raise NotImplementedError('Type of a hash field has to be BIGINT')
         field = Hash_field(field_name, Data_type.bigint, dependent_field_names)
         return field
-    if 'PARENTFIELD' in generator_types:
-        if len(generator_types) != 1:
-            raise RuntimeError(f'Genertor list of field `{field_name}` contains PARENTFIELD, but PARENTFIELD can only be in a one-generator lists')
+    if generator_types == ['PARENTFIELD']:
         generator_params = generator_list[0][1]
         column_number = int(generator_params)
         field = Parent_field(field_name, column_number, field_type, type_size)
         return field
-    if 'XPATH' in generator_types:
-        xpath = generator_params = generator_list[0][1]
-    else:
-        xpath = None
     optional = flag == 'OPT'
-    if 'PYTHON' in generator_types:
-        if len(generator_list) == 1:
-            idx = 0
-        elif len(generator_list) == 2:
-            idx = 1
-        else:
-            raise RuntimeError
-        func = generator_params = eval(generator_list[idx][1], globals_dict)
-    else:
-        func = None
-    field = Normal_field(field_name, field_type, xpath, type_size=type_size, optional=optional, func=func)
-    return field
+    if generator_types == ['XPATH']:
+        xpath = generator_params = generator_list[0][1]
+        field = Normal_field(field_name, field_type, xpath, type_size=type_size, optional=optional, func=None)
+        return field
+    if generator_types == ['XPATH', 'PYTHON']:
+        xpath = generator_params = generator_list[0][1]
+        func = generator_params = eval(generator_list[1][1], globals_dict)
+        field = Normal_field(field_name, field_type, xpath, type_size=type_size, optional=optional, func=func, func_arg_is_text=False)
+        return field
+    if generator_types == ['XPATH', 'TOTEXT', 'PYTHON']:
+        xpath = generator_params = generator_list[0][1]
+        func = generator_params = eval(generator_list[2][1], globals_dict)
+        field = Normal_field(field_name, field_type, xpath, type_size=type_size, optional=optional, func=func, func_arg_is_text=True)
+        return field
+    if generator_types == ['PYTHON']:
+        func = generator_params = eval(generator_list[0][1], globals_dict)
+        field = Normal_field(field_name, field_type, xpath=None, type_size=type_size, optional=optional, func=func)
+        return field
+    raise RuntimeError(f'Unknown generator pattern for field `{field_name}`.')
 
 class Xplinter_interpreter(Interpreter):
     def __init__(self):
