@@ -1,6 +1,8 @@
 Xplinter
 ========
 
+![Xplinter logo](logo.png)
+
 Xplinter is a Python library for XML shredding, or the conversion of XML documents into a relational database. The user defines the database and how to obtain each piece of data using a simple configuration language. The standalone program (TODO) can be used in relatively simple cases to build the database, and in more complicated cases Python can be used to transform data as desired.
 
 This application is under development and not ready for public release.
