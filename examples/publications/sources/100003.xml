@@ -1,0 +1,27 @@
+<record>
+  <uid>100003</uid>
+  <info year="2021" doctype="book" page_count="369"></info>
+  <title>Adventures in the Forests of Lansheng</title>
+  <subjects>
+    <subject>Forestry</subject>
+    <subject>Zoology</subject>
+    <subject>Anthropology</subject>
+  </subjects>
+  <keywords>
+    <keyword>Adventures</keyword>
+    <keyword>Blue Panda</keyword>
+  </keywords>
+  <authors>
+    <author>
+      <full_name>Alfred McDonald</full_name>
+      <affiliation>University of Svenborgia</affiliation>
+    </author>
+  </authors>
+  <publisher>
+    <name>Lanjing University Press</name>
+    <city>Lanjing</city>
+  </publisher>
+  <source type="book series">
+    <name>The Adventure Series</name>
+  </source>
+</record>

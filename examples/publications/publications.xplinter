@@ -1,0 +1,31 @@
+XPLINTER VERSION 0.0.1
+
+ROOT ENTITY *root (ONE) {
+    id             INTEGER XPATH(uid),
+    year           INTEGER XPATH(info/@year),
+    vol        OPT TEXT    XPATH(info/@vol),
+    issue      OPT TEXT    XPATH(info/@issue),
+    page_start OPT TEXT    XPATH(info/@page_start),
+    page_count     INTEGER XPATH(info/@page_count),
+    title          TEXT    XPATH(title),
+
+    source_id      BIGINT HASH(publisher_id, source_name),
+    source_type    TEXT   XPATH(source/@type),
+    source_name    TEXT   XPATH(source/name),
+    
+    publisher_id       BIGINT HASH(publisher_name, publisher_city),
+    publisher_name     TEXT   XPATH(publisher/name),
+    publisher_city     TEXT   XPATH(publisher/city)
+}
+
+VIEW publication OF *root {
+    id, year, vol, issue, page_start, page_count, title
+}
+
+VIEW publisher OF *root {
+    publisher_id AS id, publisher_name AS name, publisher_city AS city
+}
+
+VIEW source OF *root {
+    source_id AS id, source_name AS name, source_type AS type, publisher_id
+}

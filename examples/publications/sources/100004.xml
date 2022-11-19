@@ -1,0 +1,51 @@
+<record>
+  <uid>100004</uid>
+  <info year="2022" doctype="paper" vol="145" issue="1" page_start="130" page_count="8"></info>
+  <title>Tidal tails of globular clusters</title>
+  <subjects>
+    <subject>Astrophysics</subject>
+  </subjects>
+  <keywords>
+    <keyword>Globular clusters</keyword>
+    <keyword>Tidal tails</keyword>
+  </keywords>
+  <authors>
+    <author>
+      <full_name>Si Li</full_name>
+      <affiliation>University of Grenyarnia</affiliation>
+    </author>
+  </authors>
+  <publisher>
+    <name>Chief's Publishing</name>
+    <city>Island City</city>
+  </publisher>
+  <source type="journal">
+    <name>Grenyarnia National Science Journal</name>
+  </source>
+  <conferences>
+    <conference>
+      <uid>GG0004</uid>
+      <name>The Milky Way and its clusters</name>
+      <date>2022-01-19</date>
+      <city>Tyrania</city>
+      <sponsor>
+        <name>Grenyarnia Science Foundation</name>
+        <established>1908</established>
+      </sponsor>
+    </conference>
+    <conference>
+      <uid>GG0005</uid>
+      <name>Grenyarnia PhD students hamboree</name>
+      <date>2022-08-15</date>
+      <city>Island City</city>
+      <sponsor>
+        <name>Grenyarnia Science Foundation</name>
+        <established>1908</established>
+      </sponsor>
+      <sponsor>
+        <name>Roundcube.net</name>
+        <established>2008</established>
+      </sponsor>
+    </conference>
+  </conferences>
+</record>

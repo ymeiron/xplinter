@@ -1,0 +1,48 @@
+<record>
+  <uid>100002</uid>
+  <info year="2022" doctype="paper" vol="105" issue="2" page_start="1422" page_count="6"></info>
+  <title>Common blue panda genetic markers</title>
+  <subjects>
+    <subject>Genetics</subject>
+  </subjects>
+  <keywords>
+    <keyword>Blue Panda</keyword>
+    <keyword>Ailuropodinae</keyword>
+  </keywords>
+  <authors>
+    <author>
+      <full_name>Alfred McDonald</full_name>
+      <affiliation>University of Svenborgia</affiliation>
+    </author>
+    <author>
+      <full_name>San Zhang</full_name>
+      <affiliation>University of Svenborgia</affiliation>
+    </author>
+  </authors>
+  <publisher>
+    <name>Young Turks and Caicos Publishing</name>
+    <city>Cockburn Town</city>
+  </publisher>
+  <source type="journal">
+    <name>Popular Genetics</name>
+  </source>
+  <conferences>
+    <conference>
+      <uid>CCND4810</uid>
+      <name>Lanjing University Blue Panda Symposium</name>
+      <date>2022-05-27</date>
+      <city>Lanjing</city>
+      <sponsor>
+        <name>WWF</name>
+        <established>1961</established>
+      </sponsor>
+      <sponsor>
+        <name>Conservation International</name>
+        <established>1987</established>
+      </sponsor>
+      <sponsor>
+        <name>Lansheng Province</name>
+      </sponsor>
+    </conference>
+  </conferences>
+</record>
