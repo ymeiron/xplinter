@@ -1,15 +1,32 @@
 <record>
   <uid>100001</uid>
-  <info year="2022"></info>
+  <info year="2022" doctype="paper" vol="75" issue="10" page_start="A881" page_count="12"></info>
   <title>The anatomy of the blue panda</title>
+  <subjects>
+    <subject>Zoology</subject>
+    <subject>Pandology</subject>
+  </subjects>
+  <keywords>
+    <keyword>Blue Panda</keyword>
+    <keyword>Ailuropodinae</keyword>
+  </keywords>
   <authors>
     <author>
       <full_name>San Zhang</full_name>
+      <affiliation>University of Svenborgia</affiliation>
     </author>
     <author>
       <full_name>Si Li</full_name>
+      <affiliation>Lanjing University</affiliation>
     </author>
   </authors>
+  <publisher>
+    <name>Lanjing University Press</name>
+    <city>Lanjing</city>
+  </publisher>
+  <source type="journal">
+    <name>The Panda Gazette</name>
+  </source>
   <conferences>
     <conference>
       <uid>CCND4810</uid>
