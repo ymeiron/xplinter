@@ -99,6 +99,10 @@ class Xplinter_interpreter(Interpreter):
         for name in dir(module):
             if not (name.startswith('__') and name.endswith('__')):
                 self._module_globals[name] = getattr(module, name)
+        main_name = '__main__'
+        if main_name in dir(module):
+            self._module_globals[main_name] = getattr(module, main_name)
+            eval(main_name + '()', self._module_globals)
     def entity_statement(self, tree):
         children = self.visit_children(tree)
         root = children[0] == True
