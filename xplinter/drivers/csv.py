@@ -58,6 +58,8 @@ class Csv_driver(Driver):
         for view_name, view in self._record.view_dict.items():
             df = view.to_dataframe()
             df.to_csv(os.path.join(self._directory, view_name + '.csv'), mode='a', index=False, header=False)
+    def flush(self):
+        pass # no need to flush in this driver
     def close(self):
         if not self._open: raise RuntimeError('CSV driver `close` attempted while driver not open')
         self._open = False # Nothing else to do for CSV writer

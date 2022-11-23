@@ -16,12 +16,17 @@ class Driver(ABC):
     def is_empty(self) -> bool:
         ...
 
+    #TODO rename reset to something else, it's confusing
     @abstractmethod
     def reset(self):
         ...
 
     @abstractmethod
     def write(self):
+        ...
+
+    @abstractmethod
+    def flush(self):
         ...
 
     @abstractmethod

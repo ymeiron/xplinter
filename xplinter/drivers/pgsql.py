@@ -38,7 +38,7 @@ class Table:
         self.counter = 0
 
     def reset(self):
-        del self.buffer
+        del self.buffer # Do we really need to delete? Can't we reuse?
         self.buffer = BytesIO()
         self.buffer.write(self.header)
         self.counter = 0
@@ -138,11 +138,14 @@ class Pgsql_driver(Driver):
         for view_name, view in self._record.view_dict.items():
             for row in view.data:
                 self.table_buffers[view_name].add_row(row)
-    def close(self):
-        if not self._open: return
+    def flush(self):
         for table_name, table_buffer in self.table_buffers.items():
             table_buffer.finalize()
             self.cur.copy_expert(f'COPY {table_name} FROM STDIN WITH BINARY', table_buffer.buffer)
+            table_buffer.reset()
         self.con.commit()
+    def close(self):
+        if not self._open: return
+        self.flush()
         self.con.close()
         self._open = False
