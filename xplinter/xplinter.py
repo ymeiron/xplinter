@@ -2,7 +2,7 @@ from typing import List, Callable, Optional, Any, Dict, Tuple, Iterable
 from .driver import Driver
 from enum import Enum
 from lxml import etree
-import pandas as pd, hashlib, struct
+import pandas as pd, hashlib, struct, datetime
 
 STRIP_STRINGS: bool = True
 
@@ -33,6 +33,11 @@ def cast(value: str, data_type: Data_type) -> Any:
         if STRIP_STRINGS:
             return value.strip()
         return value
+    if (data_type == Data_type.date):
+        year  = int(value[:4])
+        month = int(value[4:6])
+        day   = int(value[6:])
+        return datetime.date(year, month, day)
     raise NotImplemented
 
 def xml_serialize(node: etree._Element):

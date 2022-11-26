@@ -11,6 +11,7 @@
     <employees>
       <employee status="active">
         <id>1001</id>
+        <hired>20030617</hired>
         <name>Susan Morin</name>
         <supervisor id="1005">Kim Lee</supervisor>
         <interns>
@@ -26,10 +27,12 @@
       </employee>
       <employee status="active">
         <id>1002</id>
+        <hired>19990319</hired>
         <name>Kelly Martin</name>
       </employee>
       <employee status="active">
         <id>1003</id>
+        <hired>20130409</hired>
         <name>Mary Wilson</name>
         <supervisor id="1005">Kim Lee</supervisor>
         <interns>
@@ -45,11 +48,13 @@
       </employee>
       <employee status="active">
         <id>1004</id>
+        <hired>19990319</hired>
         <name>Nancy Brown</name>
         <supervisor id="1002">Kelly Martin</supervisor>
       </employee>
       <employee status="active">
         <id>1005</id>
+        <hired>20160910</hired>
         <name>Kim Lee</name>
         <supervisor id="1002">Kelly Martin</supervisor>
         <interns>
@@ -61,6 +66,7 @@
       </employee>
       <employee status="active">
         <id>1006</id>
+        <hired>20170129</hired>
         <name>Richard Smith</name>
         <supervisor id="1005">Kim Lee</supervisor>
         <interns>
@@ -76,6 +82,7 @@
       </employee>
       <employee status="active">
         <id>1007</id>
+        <hired>20100615</hired>
         <name>Kim Fortin</name>
         <supervisor id="1004">Nancy Brown</supervisor>
         <interns>
@@ -98,6 +105,7 @@
     <employees>
       <employee status="active">
         <id>1008</id>
+        <hired>20061107</hired>
         <name>Nancy Roy</name>
         <interns>
           <intern>
@@ -112,6 +120,7 @@
       </employee>
       <employee status="active">
         <id>1009</id>
+        <hired>20100909</hired>
         <name>James Brown</name>
         <supervisor id="1008">Nancy Roy</supervisor>
       </employee>
@@ -128,15 +137,18 @@
     <employees>
       <employee status="active">
         <id>1010</id>
+        <hired>20100909</hired>
         <name>Mary Wilson</name>
         <supervisor id="1011">David MacDonald</supervisor>
       </employee>
       <employee status="active">
         <id>1011</id>
+        <hired>20030420</hired>
         <name>David MacDonald</name>
       </employee>
       <employee status="active">
         <id>1012</id>
+        <hired>20100102</hired>
         <name>Paul Bouchard</name>
         <supervisor id="1011">David MacDonald</supervisor>
         <interns>
@@ -152,6 +164,7 @@
       </employee>
       <employee status="active">
         <id>1013</id>
+        <hired>20080624</hired>
         <name>Michelle Martin</name>
         <supervisor id="1011">David MacDonald</supervisor>
         <interns>
@@ -163,11 +176,13 @@
       </employee>
       <employee status="active">
         <id>1014</id>
+        <hired>20040329</hired>
         <name>Michael Roy</name>
         <supervisor id="1011">David MacDonald</supervisor>
       </employee>
       <employee status="active">
         <id>1015</id>
+        <hired>20050704</hired>
         <name>Paul Lavoie</name>
         <supervisor id="1011">David MacDonald</supervisor>
       </employee>

@@ -1,7 +1,7 @@
 from xplinter import Record, Data_type
 from xplinter.driver import Driver
 
-import psycopg2, struct
+import psycopg2, struct, datetime
 from typing import List, Tuple, Dict
 from io import BytesIO
 
@@ -18,7 +18,7 @@ class Table:
     buffer : BytesIO
         A byte buffer containing the table data.
     """
-
+    epoch = datetime.date(2000, 1, 1)
     def __init__(self, fields: List[Tuple[str,Data_type,int]]):
         """Construct a Table object.
         
@@ -62,13 +62,17 @@ class Table:
             if (data_type == Data_type.text) or (data_type == Data_type.char):
                 value = value.encode('utf-8')
                 string_size = len(value)
-                self.buffer.write(struct.pack(f'!i', string_size))
+                self.buffer.write(struct.pack('!i', string_size))
                 self.buffer.write(value)
                 continue
             if data_type == Data_type.xml:
                 blob_size = len(value)
-                self.buffer.write(struct.pack(f'!i', blob_size))
+                self.buffer.write(struct.pack('!i', blob_size))
                 self.buffer.write(value)
+                continue
+            if data_type == Data_type.date:
+                date_int_repr = (value - Table.epoch).days
+                self.buffer.write(struct.pack('!ii', 4, date_int_repr))
                 continue
             field_type_code = Data_type.code(data_type)
             if field_type_code is None:
