@@ -1,25 +1,28 @@
 XPLINTER VERSION 0.0.1
 
+LOAD PYTHON helper_module
+
 ROOT ENTITY *root (ONE) {
     id             INTEGER XPATH(uid),
     year           INTEGER XPATH(info/@year),
+    month      OPT INTEGER XPATH(info/@month) @ TOTEXT() @ PYTHON(month_parser),
     vol        OPT TEXT    XPATH(info/@vol),
     issue      OPT TEXT    XPATH(info/@issue),
     page_start OPT TEXT    XPATH(info/@page_start),
     page_count     INTEGER XPATH(info/@page_count),
     title          TEXT    XPATH(title),
 
-    source_id      BIGINT HASH(publisher_id, source_name),
-    source_type    TEXT   XPATH(source/@type),
-    source_name    TEXT   XPATH(source/name),
+    source_id   BIGINT HASH(publisher_id, source_name),
+    source_type TEXT   XPATH(source/@type),
+    source_name TEXT   XPATH(source/name),
     
-    publisher_id       BIGINT HASH(publisher_name, publisher_city),
-    publisher_name     TEXT   XPATH(publisher/name),
-    publisher_city     TEXT   XPATH(publisher/city)
+    publisher_id   BIGINT HASH(publisher_name, publisher_city),
+    publisher_name TEXT   XPATH(publisher/name),
+    publisher_city TEXT   XPATH(publisher/city)
 }
 
 VIEW publication OF *root {
-    id, year, vol, issue, page_start, page_count, title
+    id, year, month, vol, issue, page_start, page_count, title
 }
 
 VIEW publisher OF *root {
@@ -28,4 +31,32 @@ VIEW publisher OF *root {
 
 VIEW source OF *root {
     source_id AS id, source_name AS name, source_type AS type, publisher_id
+}
+
+ENTITY author (ONE OR MORE, *root, XPATH(authors/author)) {
+    id              BIGINT HASH(full_name, affiliation),
+    full_name       TEXT   XPATH(full_name),
+    affiliation     TEXT   XPATH(affiliation),
+    *publication_id BIGINT PARENTFIELD(0)
+}
+
+ENTITY publication_author (ONE OR MORE, author) {
+    publication_id BIGINT PARENTFIELD(3),
+    author_id      BIGINT PARENTFIELD(0)
+}
+
+KVENTITY descriptor {
+    KV{
+        doctype XPATH(info/@doctype),
+        subject XPATH(subjects/subject),
+        keyword XPATH(keywords/keyword)
+    },
+    HASH AS id,
+    PARENTFIELD(0) AS *publication_id,
+    VALUE AS text,
+    KEY AS type
+}
+
+VIEW publication_descriptor OF descriptor {
+    *publication_id AS publication_id, id AS desc_id
 }
