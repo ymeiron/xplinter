@@ -55,7 +55,7 @@ def hash_function(data: Iterable, positive: bool = True, full_hex: bool = False)
         elif isinstance(datum, bytes):
             datum_serialized = datum
         else:
-            raise RuntimeError('Unexpected type to hash')
+            raise RuntimeError(f'Unexpected type to hash: {type(datum)}')
 
         m.update(datum_serialized)
 
