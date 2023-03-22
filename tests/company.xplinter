@@ -29,3 +29,19 @@ ENTITY intern (ZERO OR MORE, employee, XPATH(interns/intern)) {
 VIEW intern_employee OF intern {
     id AS intern_id, *mentor_id AS employee_id
 }
+
+KVENTITY descriptor (branch) {
+    KV{
+        language  XPATH(languages/language),
+        area      XPATH(@area),
+        expertise XPATH(employees/employee/expertise)
+    },
+    HASH AS id,
+    PARENTFIELD(0) AS *branch_id,
+    KEY AS key,
+    VALUE AS value
+}
+
+VIEW branch_descriptor OF descriptor {
+    *branch_id AS branch_id, id AS desc_id
+}

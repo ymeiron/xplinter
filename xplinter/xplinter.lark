@@ -30,7 +30,7 @@ view_name: CNAME
 alias_list: alias_descriptor ("," alias_descriptor)*
 alias_descriptor: field_name ["AS" alias]
 alias: CNAME
-kv_statement: "KVENTITY" entity_name \
+kv_statement: "KVENTITY" entity_name "(" parent ")" \
               "{" \
                 "KV{" kv_descriptor_list "}," \
                 kv_special_field_list \

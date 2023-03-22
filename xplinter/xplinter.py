@@ -275,7 +275,10 @@ class Kv_entity(Entity):
     def add_kv_extractor(self, kv_extractor: Kv_extractor):
         self.kv_extractor = kv_extractor
     def add_special_field(self, name: str, sepcial_type: str):
-        super().add_field(Field(name, Data_type.unknown))
+        if   sepcial_type in ['KEY', 'VALUE']: data_type = Data_type.text
+        elif sepcial_type == 'HASH': data_type = Data_type.bigint
+        else: data_type = Data_type.unknown # If it's PARENTFIELD, will be set in Record.commit
+        super().add_field(Field(name, data_type))
         self.field_list[-1]._meta = sepcial_type
     def process(self, tree, parent_data: Any = None):
         node_list = self.get_node_list(tree)
@@ -287,13 +290,13 @@ class Kv_entity(Entity):
         for kv in self.kv_extractor.data:
             row = []
             for field in self.field_list:
-                if   field._meta == 'KEY':
+                if   field._meta.startswith('K'): # KEY
                     datum = kv[0]
-                elif field._meta == 'VALUE':
+                elif field._meta.startswith('V'): # VALUE
                     datum = kv[1]
-                elif field._meta == 'HASH':
+                elif field._meta.startswith('H'): # HASH
                     datum = hash_function(kv)
-                elif field._meta.startswith('PARENTFIELD'):
+                elif field._meta.startswith('P'): # PARENTFIELD
                     idx = int(field._meta[12:-1])
                     datum = parent_data[idx]
                 else:
@@ -350,6 +353,14 @@ class Record:
             if not entity:
                 raise RuntimeError(f'View `{view.name}` depends on entity `{entity_name}`, but none named such was found in record')
             view.set_entity(entity)
+        for entity in self.entity_dict.values():
+            if isinstance(entity, Kv_entity):
+                for field in entity.field_list:
+                    if field._meta.startswith('P'): # PARENTFIELD
+                        idx = int(field._meta[12:-1])
+                        parent_field = self.entity_dict[entity.parent_name].field_list[idx]
+                        parent_field.data_type
+                        field.data_type = parent_field.data_type
         self.committed = True
     def process(self, tree):
         self.root_entity.process(tree)

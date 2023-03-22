@@ -162,8 +162,9 @@ class Xplinter_interpreter(Interpreter):
     def kv_statement(self, tree):
         children = self.visit_children(tree)
         entity_name = children[0][0].value
-        kv_descriptor_node = children[1]
-        special_field_list = children[2]
+        parent_name = children[1][0].value
+        kv_descriptor_node = children[2]
+        special_field_list = children[3]
 
         kv_extractor = Kv_extractor()
         for kv_descriptor in kv_descriptor_node:
@@ -172,7 +173,7 @@ class Xplinter_interpreter(Interpreter):
             xpath     = generator[0][1]
             kv_extractor.add_xpath(key, xpath)
 
-        kv_entity = Kv_entity(entity_name, Cardinality.one_or_more, parent_name='*root')
+        kv_entity = Kv_entity(entity_name, Cardinality.one_or_more, parent_name=parent_name)
         kv_entity.kv_extractor = kv_extractor
         for field in special_field_list:
             special_field_name = field[0]

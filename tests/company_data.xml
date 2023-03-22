@@ -29,6 +29,7 @@
         <id>1002</id>
         <hired>19990319</hired>
         <name>Kelly Martin</name>
+        <expertise>management</expertise>
       </employee>
       <employee status="active">
         <id>1003</id>
@@ -91,10 +92,16 @@
             <name>Emma Jones</name>
           </intern>
         </interns>
+        <expertise>accounting</expertise>
       </employee>
     </employees>
+    <languages>
+      <language>English</language>
+      <language>French</language>
+      <language>Turkish</language>
+    </languages>
   </branch>
-  <branch>
+  <branch area="330 m²">
     <name>Toronto North York</name>
     <address>
       <address_line>5600 Yonge St.</address_line>
@@ -107,6 +114,7 @@
         <id>1008</id>
         <hired>20061107</hired>
         <name>Nancy Roy</name>
+        <expertise>management</expertise>
         <interns>
           <intern>
             <id>2007</id>
@@ -126,7 +134,7 @@
       </employee>
     </employees>
   </branch>
-  <branch>
+  <branch area="290 m²">
     <name>Montreal</name>
     <address>
       <address_line>677 Saint-Catherine St W</address_line>
@@ -145,12 +153,14 @@
         <id>1011</id>
         <hired>20030420</hired>
         <name>David MacDonald</name>
+        <expertise>sales</expertise>
       </employee>
       <employee status="active">
         <id>1012</id>
         <hired>20100102</hired>
         <name>Paul Bouchard</name>
         <supervisor id="1011">David MacDonald</supervisor>
+        <expertise>sales</expertise>
         <interns>
           <intern>
             <id>2009</id>
@@ -187,5 +197,9 @@
         <supervisor id="1011">David MacDonald</supervisor>
       </employee>
     </employees>
+    <languages>
+      <language>French</language>
+      <language>Mandarin</language>
+    </languages>
   </branch>
 </records>
