@@ -149,6 +149,7 @@ class Entity:
         self.cardinality: Cardinality = cardinality
         self.field_list: List[Field] = []
         self.field_indices: Dict[str,int] = {} # do we really need the field itself here?
+        self.visible_field_inidices: List[int] = []
         self._xpath: Optional[etree.XPath] = None
         if xpath:
             self._xpath = etree.XPath(xpath)
@@ -179,6 +180,7 @@ class Entity:
         self.field_list.append(field)
         my_idx = len(self.field_list) - 1
         self.field_indices[field.name] = my_idx
+        if not field.name.startswith('*'): self.visible_field_inidices.append(my_idx)
     def get_field_index(self, field_name: str) -> int:
         return self.field_indices[field_name]
     def get_field(self, field_name: str) -> Field:
@@ -213,7 +215,7 @@ class Entity:
             self.data.append(row)
             for child_entity in self.children:
                 child_entity.process(node, row)
-    def to_dataframe(self, expose_hidden_fields: bool = False):
+    def to_dataframe(self, expose_hidden_fields: bool = False): # Move to CSV driver?
         columns = [field.name for field in self.field_list]
         df = pd.DataFrame(self.data, columns=columns)
         if not expose_hidden_fields:

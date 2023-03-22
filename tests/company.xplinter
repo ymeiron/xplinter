@@ -23,7 +23,7 @@ ENTITY intern (ZERO OR MORE, employee, XPATH(interns/intern)) {
     id          INTEGER XPATH(id),
     full_name   TEXT    XPATH(name),
     *mentor_id  INTEGER PARENTFIELD(0),
-    branch_id   BIGINT  PARENTFIELD(4)
+    branch_id   BIGINT  PARENTFIELD(5)
 }
 
 VIEW intern_employee OF intern {

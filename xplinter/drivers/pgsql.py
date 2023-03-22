@@ -137,7 +137,8 @@ class Pgsql_driver(Driver):
         for entity_name, entity in self._record.entity_dict.items():
             if entity_name.startswith('*'):
                 continue
-            for row in entity.data:
+            for _row in entity.data:
+                row = [_row[i] for i in entity.visible_field_inidices]
                 self.table_buffers[entity_name].add_row(row)
         for view_name, view in self._record.view_dict.items():
             for row in view.data:
