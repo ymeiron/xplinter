@@ -1,7 +1,7 @@
 ?program: version python_module? (statement)*
 version: "XPLINTER VERSION" /[\d\.]+/ "\n"
 python_module: "LOAD PYTHON" /.+/ "\n"
-?statement: entity_statement | view_statement | kv_statement
+?statement: entity_statement | view_statement | kv_statement | enum_statement
 entity_statement: [root_entity] "ENTITY" entity_name "(" cardinality ["," parent] ["," generator] ")" "{" field_list "}"
 root_entity: "ROOT"
 entity_name: ENTITY_NAME
@@ -41,6 +41,10 @@ kv_special_field_descriptor: kv_special_field_type "AS" field_name
 kv_descriptor_list: kv_descriptor ("," kv_descriptor)*
 kv_descriptor: kv_key_name generator
 kv_key_name: CNAME
+enum_statement: "ENUM" enum_name "{" item_list "}"
+enum_name: CNAME
+item_list: item ("," item)*
+item: CNAME
 
 %import common.SH_COMMENT
 %ignore SH_COMMENT

@@ -1,6 +1,6 @@
 from typing import List, Callable, Optional, Any, Dict, Tuple, Iterable
 from .driver import Driver
-from enum import Enum
+from enum import Enum, EnumMeta
 from lxml import etree
 import pandas as pd, hashlib, struct, datetime
 
@@ -319,6 +319,7 @@ class Record:
         self.entity_dict: Dict[str,Entity] = {}
         self.root: Optional[Entity] = None
         self.view_dict: Dict[str,View] = {}
+        self.enums: List[EnumMeta] = []
         self.committed: bool = False
         self.set_driver(driver)
     def __del__(self):
@@ -347,6 +348,8 @@ class Record:
         if self.committed:
             raise RuntimeError(f'Record already committed, cannot add new views')
         self.view_dict[view.name] = view
+    def add_enum(self, enum: EnumMeta):
+        self.enums.append(enum)
     def commit(self):
         for child_entity in self.entity_dict.values():
             if not child_entity.parent_name: continue

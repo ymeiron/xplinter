@@ -121,6 +121,11 @@ class Pgsql_driver(Driver):
         raise NotImplementedError
     def reset(self):
         if not self._open: raise RuntimeError('PostgreSQL driver `reset` attempted while driver not open')
+        for enum in self._record.enums:
+            items_with_quotes = ["'"+item+"'" for item in enum.__members__]
+            item_list_string = '(' + ', '.join(items_with_quotes) + ')'
+            self.cur.execute(f'DROP TYPE IF EXISTS {enum.__name__}')
+            self.cur.execute(f'CREATE TYPE {enum.__name__} AS ENUM {item_list_string};')
         for table_name, field_list in self.tables.items():
             columns_string = ''
             for field_tuple in field_list:

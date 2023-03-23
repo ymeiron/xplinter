@@ -3,7 +3,7 @@ from lark.visitors import Interpreter
 from typing import List, Tuple, Optional
 from .driver import Driver
 from xplinter import Field, Hash_field, Normal_field, Parent_field, Data_type, Cardinality, Entity, Record, View, Kv_extractor, Kv_entity
-import importlib, os
+import importlib, os, enum
 
 class Generator_interp(Interpreter):
     def generator_content(self, tree):
@@ -88,8 +88,9 @@ class Xplinter_interpreter(Interpreter):
                 root = child._meta == 'ROOT'
                 record.add_entity(child, root=root)
             elif isinstance(child, View):
-                child.set_entity
                 record.add_view(child)
+            elif isinstance(child, enum.EnumMeta):
+                record.add_enum(child)
             else:
                 pass
         return record
@@ -188,7 +189,7 @@ class Xplinter_interpreter(Interpreter):
         return (special_field_name, special_field_type)
 
     def view_statement(self, tree):
-        children    = self.visit_children(tree)
+        children      = self.visit_children(tree)
         view_name     = children[0][0].value
         entity_name   = children[1][0].value
         alias_list    = children[2]
@@ -202,6 +203,12 @@ class Xplinter_interpreter(Interpreter):
         else:
             alias = field_name
         return (field_name, alias)
+    def enum_statement(self, tree):
+        children      = self.visit_children(tree)
+        enum_name     = children[0][0].value
+        item_list     = children[1]
+        print('OK I had enum statement')
+        return enum.Enum(enum_name, [item[0].value for item in item_list])
 
 class Generate_record: # Create a singleton object in this module
     def __init__(self):
