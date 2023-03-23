@@ -38,7 +38,7 @@ def cast(value: str, data_type: Data_type) -> Any:
         month = int(value[4:6])
         day   = int(value[6:])
         return datetime.date(year, month, day)
-    raise NotImplemented
+    raise NotImplementedError
 
 def xml_serialize(node: etree._Element):
         return etree.tostring(node, method="c14n2", strip_text=True)
@@ -196,7 +196,14 @@ class Entity:
         for node in node_list:
             row = []
             for field in self.field_list:
-                value = field.process(node)
+                try:
+                    value = field.process(node)
+                except Exception as e:
+                    node_repr = etree.tounicode(node)
+                    if len(node_repr) > 64: node_repr = node_repr[:64] + '...'
+                    node_repr = repr(node_repr)
+                    print(f'Error: entity={self.name} field={field.name} node={node_repr} error={e}')
+                    value = None
                 if (not value is None) and ((field.data_type == Data_type.text) or (field.data_type == Data_type.char)) and (field.type_size > 0):
                     if len(value) > field.type_size:
                         raise RuntimeError(f'Value of field `{field.name}` is "{value}" and too long (maximum {field.type_size} characters)')
