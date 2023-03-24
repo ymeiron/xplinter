@@ -1,8 +1,8 @@
-from xplinter import Record, Data_type
+from xplinter import Record, Field, Data_type
 from xplinter.driver import Driver
 
 import psycopg2, struct, datetime
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 from io import BytesIO
 
 class Table:
@@ -19,15 +19,14 @@ class Table:
         A byte buffer containing the table data.
     """
     epoch = datetime.date(2000, 1, 1)
-    def __init__(self, fields: List[Tuple[str,Data_type,int]]):
+    def __init__(self, fields: List[Tuple[str,Data_type]]):
         """Construct a Table object.
         
         Parameters
         ----------
-        fields : List[Tuple[str,Data_type,int]]
+        fields : List[Tuple[str,Data_type]]
             Each element in this list is a tuple, where the first element is the
-            name of the field, the second is a single data type, and the third
-            the size (in case of char or text fields).
+            name of the field, the second is a single data type.
         """
 
         self.header = b'\x50\x47\x43\x4F\x50\x59\x0A\xFF\x0D\x0A\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -52,7 +51,7 @@ class Table:
         """
 
         self.buffer.write(self.field_count_bytes)
-        for i, (field_name, data_type, _) in enumerate(self.fields):
+        for i, (field_name, data_type) in enumerate(self.fields):
             if field_name.startswith('*'):
                continue
             value = datum[i]
@@ -76,7 +75,7 @@ class Table:
                 continue
             field_type_code = Data_type.code(data_type)
             if field_type_code is None:
-                raise NotImplemented
+                raise NotImplementedError
             field_size = struct.calcsize(field_type_code)
             self.buffer.write(struct.pack(f'!i{field_type_code}', field_size, value))
         self.counter += 1
@@ -90,25 +89,24 @@ class Table:
 class Pgsql_driver(Driver):
     def __init__(self, db_config, reset: bool = False):
         self.db_config = db_config
-        self.tables: Dict[str, List[Tuple[str, Data_type, int]]] = {}
         self._open: bool = False
         if reset:
             raise NotImplementedError
     def set_record(self, record: Record):
         self.table_buffers: Dict[str, Table] = {}
+        tables = {}
         for entity_name, entity in record.entity_dict.items():
             if entity_name.startswith('*'):
                 continue
-            self.tables[entity_name] = [(field.name, field.data_type, field.type_size) for field in entity.field_list if not field.name.startswith('*')]
-            self.table_buffers[entity_name] = Table(self.tables[entity_name])
+            tables[entity_name] = [(field.name, field.data_type) for field in entity.field_list if not field.name.startswith('*')]
+            self.table_buffers[entity_name] = Table(tables[entity_name])
         for view_name, view in record.view_dict.items():
-            if view.entity is None:
-                raise RuntimeError
-            self.tables[view_name] = []
+            if view.entity is None: raise RuntimeError
+            tables[view_name] = []
             for col, idx in zip(view.columns, view.indices):
                 field = view.entity.field_list[idx]
-                self.tables[view_name].append((col, field.data_type, field.type_size))
-            self.table_buffers[view_name] = Table(self.tables[view_name])
+                tables[view_name].append((col, field.data_type))
+            self.table_buffers[view_name] = Table(tables[view_name])
         self._record: Record = record
         
     def open(self):
@@ -126,17 +124,27 @@ class Pgsql_driver(Driver):
             item_list_string = '(' + ', '.join(items_with_quotes) + ')'
             self.cur.execute(f'DROP TYPE IF EXISTS {enum.__name__}')
             self.cur.execute(f'CREATE TYPE {enum.__name__} AS ENUM {item_list_string};')
-        for table_name, field_list in self.tables.items():
-            columns_string = ''
-            for field_tuple in field_list:
-                field_name, field_type, type_size = field_tuple
-                type_string = field_type.name.upper()
-                if ((field_type == Data_type.char) or (field_type == Data_type.text)) and (type_size > 0):
-                    type_string += f'({type_size})'
-                columns_string += field_name + ' ' + type_string + ', '
-            columns_string = columns_string[:-2] # Get rid of last comma and space
-            self.cur.execute(f'DROP TABLE IF EXISTS {table_name} CASCADE')
-            self.cur.execute(f'CREATE TABLE {table_name} ({columns_string})')
+        for entity_name, entity in self._record.entity_dict.items():
+            if entity_name.startswith('*'): continue
+            field_list = [field for field in entity.field_list if not field.name.startswith('*')]
+            self.create_table(entity_name, field_list)
+        for view_name, view in self._record.view_dict.items():
+            if view.entity is None: raise RuntimeError
+            field_list = [view.entity.field_list[idx] for idx in view.indices]
+            self.create_table(view_name, field_list, view.columns)
+    def create_table(self, table_name: str, field_list: List[Field], alt_names: Optional[List[str]] = None):
+        columns_string = ''
+        for i, field in enumerate(field_list):
+            if alt_names: field_name = alt_names[i]
+            else: field_name = field.name
+            field_type, type_size = field.data_type, field.type_size
+            type_string = field_type.name.upper()
+            if ((field_type == Data_type.char) or (field_type == Data_type.text)) and (type_size > 0):
+                type_string += f'({type_size})'
+            columns_string += field_name + ' ' + type_string + ', '
+        columns_string = columns_string[:-2] # Get rid of last comma and space
+        self.cur.execute(f'DROP TABLE IF EXISTS {table_name} CASCADE')
+        self.cur.execute(f'CREATE TABLE {table_name} ({columns_string})')
     def write(self):
         if not self._open: raise RuntimeError('PostgreSQL driver `write` attempted while driver not open')
         for entity_name, entity in self._record.entity_dict.items():
