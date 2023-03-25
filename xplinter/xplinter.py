@@ -35,9 +35,16 @@ def cast(value: str, data_type: Data_type) -> Any:
             return value.strip()
         return value
     if (data_type == Data_type.date):
-        year  = int(value[:4])
-        month = int(value[4:6])
-        day   = int(value[6:])
+        if len(value) == 8: # without dashes (20230101)
+            year  = int(value[:4])
+            month = int(value[4:6])
+            day   = int(value[6:])
+        elif len(value) == 10: # with dashes (2023-01-01)
+            year  = int(value[:4])
+            month = int(value[5:7])
+            day   = int(value[8:])
+        else:
+            raise ValueError('Date format not understood')
         return datetime.date(year, month, day)
     raise NotImplementedError('Cast error')
 
