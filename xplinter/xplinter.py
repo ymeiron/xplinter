@@ -370,8 +370,8 @@ class Record:
                     if field._meta.startswith('P'): # PARENTFIELD
                         idx = int(field._meta[12:-1])
                         parent_field = self.entity_dict[entity.parent_name].field_list[idx]
-                        parent_field.data_type
                         field.data_type = parent_field.data_type
+                        field.type_size = parent_field.type_size
         self.committed = True
     def process(self, tree):
         self.root_entity.process(tree)
@@ -382,44 +382,3 @@ class Record:
             raise RuntimeError('Cannot write because no writing driver was set')
         self.driver.write()
         self.reset()
-
-
-if __name__ == '__main__':
-    with open('sample.xml', 'rb') as f:
-        tree = etree.fromstring(f.read(), None)
-
-    record = Record()
-
-    publication = Entity('publication')
-    publication.add_field(Normal_field('uid', Data_type.text, 'uid'))
-    publication.add_field(Normal_field('year', Data_type.integer, 'info/@year'))
-    publication.add_field(Normal_field('title', Data_type.text, 'title'))
-    record.add_entity(publication, root=True)
-
-    conference = Entity('conference', Cardinality.one_or_more, 'conferences/conference', parent_name = 'publication')
-    conference.add_field(Normal_field('uid', Data_type.text,  'uid'))
-    conference.add_field(Normal_field('name', Data_type.text, 'name'))
-    conference.add_field(Normal_field('date', Data_type.text, 'date'))
-    conference.add_field(Normal_field('city', Data_type.text, 'city'))
-    record.add_entity(conference)
-
-    conference_sponsor = Entity('conference_sponsor', Cardinality.zero_or_more, 'sponsor', parent_name = 'conference')
-    conference_sponsor.add_field(Normal_field('name', Data_type.text, 'name'))
-    conference_sponsor.add_field(Normal_field('established', Data_type.text, 'established', optional=True))
-    conference_sponsor.add_field(Parent_field('conf_id', Data_type.text))
-    conference_sponsor.add_field(Hash_field('zzz1', Data_type.bigint, ['name', 'generated_uid']))
-    conference_sponsor.add_field(Hash_field('generated_uid', Data_type.bigint, ['name', 'established']))
-    conference_sponsor.add_field(Hash_field('zzz2', Data_type.bigint, ['name', 'generated_uid']))
-
-    
-    record.add_entity(conference_sponsor)
-
-    record.commit()
-
-    record.process(tree)
-
-    for entity_name, entity in record.entity_dict.items():
-        print('---------------------------')
-        print('=== ' + entity_name.upper() + ' ===')
-        print(entity.to_dataframe())
-        
