@@ -46,6 +46,8 @@ def cast(value: str, data_type: Data_type) -> Any:
         else:
             raise ValueError('Date format not understood')
         return datetime.date(year, month, day)
+    if (data_type == Data_type.double) or (data_type == Data_type.real):
+        return float(value)
     raise NotImplementedError('Cast error')
 
 def xml_serialize(node: etree._Element):

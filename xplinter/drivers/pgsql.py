@@ -139,6 +139,7 @@ class Pgsql_driver(Driver):
             else: field_name = field.name
             field_type, type_size = field.data_type, field.type_size
             type_string = field_type.name.upper()
+            if type_string == 'DOUBLE': type_string += ' PRECISION'
             if type_string == 'ENUM': type_string = field._meta
             if ((field_type == Data_type.char) or (field_type == Data_type.text)) and (type_size > 0):
                 type_string += f'({type_size})'
