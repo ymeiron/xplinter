@@ -44,8 +44,9 @@ kv_descriptor: kv_key_name generator
 kv_key_name: CNAME
 enum_statement: "ENUM" enum_name "{" item_list "}"
 enum_name: CNAME
-item_list: item ("," item)*
-item: CNAME
+item_list: enum_item ("," enum_item)*
+enum_item: ENUM_ITEM
+ENUM_ITEM: ("_"|LETTER|DIGIT) ("_"|LETTER|DIGIT|WS)* ("_"|LETTER|DIGIT)
 
 %import common.SH_COMMENT
 %ignore SH_COMMENT
