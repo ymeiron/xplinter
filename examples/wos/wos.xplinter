@@ -2,37 +2,40 @@ XPLINTER VERSION 0.0.1
 
 LOAD PYTHON helper_module
 
+ENUM edtype   { SCI, SSCI, AHCI, ISTP, ISSHP, IC, CCR, BSCI, BHCI, ESCI }
+ENUM pubtype  { journal, book, book in series }
+ENUM idtype   { accession_no, art_no, doi, eisbn, eissn, isbn, issn, meeting_abs, parent_book_doi, pmid, xref_doi }
+ENUM oastype  { gold, hybrid, gold_doaj, gold_other, bronze, green_published, green_accepted, green_submitted }
+
 ROOT ENTITY *root (ONE)
 {
-    id                 TEXT       XPATH(UID) @ PYTHON(lambda text: text[4:]),
-    edition            TEXT       XPATH(static_data/summary/EWUID/edition[1]/@value) @ PYTHON(lambda text: text[4:]),
-    type               TEXT       XPATH(static_data/summary/pub_info/@pubtype) @ PYTHON(lambda text: text.lower()),
-    year         OPT   SMALLINT   XPATH(static_data/summary/pub_info/@pubyear),
-    month        OPT   SMALLINT   XPATH(static_data/summary/pub_info/@pubmonth) @ PYTHON(Month_parser()),
-    # day (!!!)
-    vol          OPT   TEXT       XPATH(static_data/summary/pub_info/@vol),
-    issue        OPT   TEXT       XPATH(static_data/summary/pub_info/@issue),
-    page_begin   OPT   CHAR(10)   XPATH(static_data/summary/pub_info/page/@begin),
-    page_end     OPT   CHAR(10)   XPATH(static_data/summary/pub_info/page/@end),
-    page_count   OPT   SMALLINT   XPATH(static_data/summary/pub_info/page/@page_count),
-    title        OPT   TEXT       XPATH(static_data/summary/titles/title[@type="item"]),
-    # ref_count (!!!)
+    id                 CHAR(15)       XPATH(UID) @ TOTEXT() @ PYTHON(lambda text: text[4:]),
+    edition            ENUM(edtype)   XPATH(static_data/summary/EWUID/edition[1]/@value) @ TOTEXT() @ PYTHON(lambda text: text[4:]),
+    type               ENUM(pubtype)  XPATH(static_data/summary/pub_info/@pubtype) @ TOTEXT() @ PYTHON(lambda text: text.lower()),
+    year          OPT  SMALLINT       XPATH(static_data/summary/pub_info/@pubyear),
+    sortdate      OPT  DATE           XPATH(static_data/summary/pub_info/@sortdate),
+    vol           OPT  TEXT           XPATH(static_data/summary/pub_info/@vol),
+    issue         OPT  TEXT           XPATH(static_data/summary/pub_info/@issue),
+    page_begin    OPT  CHAR(10)       XPATH(static_data/summary/pub_info/page/@begin),
+    page_end      OPT  CHAR(10)       XPATH(static_data/summary/pub_info/page/@end),
+    page_count    OPT  SMALLINT       XPATH(static_data/summary/pub_info/page/@page_count),
+    title         OPT  TEXT           XPATH(static_data/summary/titles/title[@type="item"]),
+    ref_count          SMALLINT       XPATH(static_data/fullrecord_metadata/references/@count),
 
-    source_id          BIGINT     HASH(source_name, publisher_id),
-    source_name        TEXT       XPATH(static_data/summary/titles/title[@type="source"]),
-    abbrev       OPT   TEXT       XPATH(static_data/summary/titles/title[@type="source_abbrev"]),
-    series       OPT   TEXT       XPATH(static_data/summary/titles/title[@type="series"]),
+    source_id          BIGINT         HASH(source_name, publisher_id),
+    source_name        TEXT           XPATH(static_data/summary/titles/title[@type="source"]),
+    abbrev        OPT  TEXT           XPATH(static_data/summary/titles/title[@type="source_abbrev"]),
+    series        OPT  TEXT           XPATH(static_data/summary/titles/title[@type="series"]),
 
-    publisher_id       BIGINT     HASH(full_name, address),
-    full_name    OPT   TEXT       XPATH(static_data/summary/publishers/publisher/names/name/full_name),
-    unified_name OPT   TEXT       XPATH(static_data/summary/publishers/publisher/names/name/unified_name),
-    address      OPT   TEXT       XPATH(static_data/summary/publishers/publisher/address_spec/full_address),
-    city         OPT   TEXT       XPATH(static_data/summary/publishers/publisher/address_spec/city)
+    publisher_id       BIGINT         HASH(full_name, address),
+    full_name     OPT  TEXT           XPATH(static_data/summary/publishers/publisher/names/name/full_name),
+    unified_name  OPT  TEXT           XPATH(static_data/summary/publishers/publisher/names/name/unified_name),
+    address       OPT  TEXT           XPATH(static_data/summary/publishers/publisher/address_spec/full_address),
+    city          OPT  TEXT           XPATH(static_data/summary/publishers/publisher/address_spec/city)
 }
 
 VIEW publication OF *root {
-    id, edition, source_id, type, year, month, vol, issue, page_begin, page_end, page_count, title
-    # Don't forget to add `day` and `ref_count`
+    id, edition, source_id, type, year, sortdate, vol, issue, page_begin, page_end, page_count, title, ref_count
 }
 
 VIEW source OF *root {
@@ -44,96 +47,95 @@ VIEW publisher OF *root {
 }
 
 ENTITY author (ONE OR MORE, *root, XPATH(static_data/summary/names/name)) {
-    id                 BIGINT     HASH(wos_id, full_name, seq_no),
-    wos_id             TEXT       PARENTFIELD(0),
-    full_name          TEXT       XPATH(full_name),
-    seq_no             TEXT       XPATH(@seq_no),
-    reprint      OPT   BOOLEAN    XPATH(@reprint) @ PYTHON(lambda reprint: reprint=='Y'),
-    email        OPT   TEXT       XPATH(email_addr),
-    orcid        OPT   TEXT       XPATH(orcid_id_tr),
-    *addr_no     OPT   TEXT       XPATH(@addr_no)
+    id              BIGINT    HASH(wos_id, full_name, seq_no),
+    wos_id          CHAR(15)  PARENTFIELD(0),
+    full_name       TEXT      XPATH(full_name),
+    seq_no          SMALLINT  XPATH(@seq_no),
+    reprint    OPT  BOOLEAN   XPATH(@reprint) @ TOTEXT() @ PYTHON(lambda reprint: reprint=='Y'),
+    email      OPT  TEXT      XPATH(email_addr),
+    orcid      OPT  TEXT      XPATH(orcid_id_tr),
+    *addr_no   OPT  TEXT      XPATH(@addr_no)
 }
 
 ENTITY contributor (ZERO OR MORE, *root, XPATH(static_data/contributors/contributor/name)) {
-    id                 BIGINT     HASH(wos_id, full_name, rid, orcid),
-    wos_id             TEXT       PARENTFIELD(0), 
-    full_name    OPT   TEXT       XPATH(full_name),
-    rid          OPT   TEXT       XPATH(@r_id),
-    orcid        OPT   TEXT       XPATH(@orcid_id)
+    id              BIGINT    HASH(wos_id, full_name, rid, orcid),
+    wos_id          CHAR(15)  PARENTFIELD(0), 
+    full_name  OPT  TEXT      XPATH(full_name),
+    rid        OPT  TEXT      XPATH(@r_id),
+    orcid      OPT  TEXT      XPATH(@orcid_id)
 }
 
 ENTITY address (ONE OR MORE, *root, XPATH(static_data/fullrecord_metadata/addresses/address_name/address_spec)) {
-    id                 BIGINT     HASH(address),
-    address            TEXT       XPATH(full_address),
-    street       OPT   TEXT       XPATH(street),
-    city         OPT   TEXT       XPATH(city),
-    admin_div    OPT   TEXT       XPATH(state),
-    country      OPT   TEXT       XPATH(country),
-    postal_code  OPT   TEXT       XPATH(zip[1]),
-    *addr_no     OPT   TEXT       XPATH(@addr_no)
+    id                BIGINT  HASH(address),
+    address           TEXT    XPATH(full_address),
+    street       OPT  TEXT    XPATH(street),
+    city         OPT  TEXT    XPATH(city),
+    admin_div    OPT  TEXT    XPATH(state),
+    country      OPT  TEXT    XPATH(country),
+    postal_code  OPT  TEXT    XPATH(zip[1]),
+    *addr_no     OPT  TEXT    XPATH(@addr_no)
 }
 
+# The values are filled in postprocessing.
 ENTITY author_address (ONE OR MORE) {
-    author_id          BIGINT     NULL(),
-    address_id         BIGINT     NULL()
+    author_id   BIGINT  NULL(),
+    address_id  BIGINT  NULL()
 }
 
 ENTITY abstract (ZERO OR ONE, *root, XPATH(static_data/fullrecord_metadata/abstracts/abstract/abstract_text)) {
-    wos_id             TEXT       PARENTFIELD(0),
-    text         OPT   TEXT       PYTHON(paragraph_formatter)
+    wos_id       CHAR(15)  PARENTFIELD(0),
+    text    OPT  TEXT      PYTHON(paragraph_formatter)
 }
 
 ENTITY reference (ZERO OR MORE, *root, XPATH(static_data/fullrecord_metadata/references/reference)) {
-    citing_id          TEXT       PARENTFIELD(0),
-    cited_id     OPT   TEXT       XPATH(uid),
-    occurrence_order   SMALLINT   XPATH(@occurenceOrder),
-    author       OPT   TEXT       XPATH(citedAuthor),
-    year         OPT   SMALLINT   XPATH(year),
-    source       OPT   TEXT       XPATH(citedWork),
-    volume       OPT   TEXT       XPATH(volume),
-    page         OPT   TEXT       XPATH(page),
-    title        OPT   TEXT       XPATH(citedTitle),
-    doi          OPT   TEXT       XPATH(doi),
-    patent_no    OPT   TEXT       XPATH(patent_no),
-    assignee     OPT   TEXT       XPATH(assignee)
+    citing_id               CHAR(15)  PARENTFIELD(0),
+    cited_id          OPT   TEXT      XPATH(uid),
+    occurrence_order        SMALLINT  XPATH(@occurenceOrder),
+    author            OPT   TEXT      XPATH(citedAuthor),
+    year              OPT   SMALLINT  XPATH(year),
+    source            OPT   TEXT      XPATH(citedWork),
+    volume            OPT   TEXT      XPATH(volume),
+    page              OPT   TEXT      XPATH(page),
+    title             OPT   TEXT      XPATH(citedTitle),
+    doi               OPT   TEXT      XPATH(doi),
+    patent_no         OPT   TEXT      XPATH(patent_no),
+    assignee          OPT   TEXT      XPATH(assignee)
 }
 
 ENTITY reference_context (ZERO OR MORE, reference, XPATH(physicalSection)) {
-    citing_id          TEXT       PARENTFIELD(0),
-    cited_id           TEXT       PARENTFIELD(1),
-    other_id           TEXT       PARENTFIELD(10),
-    patent             BOOLEAN    NULL(),
-    location           TEXT       XPATH(@physicalLocation), # should be double!!!
-    section            TEXT       XPATH(.)
+    citing_id  CHAR(15)  PARENTFIELD(0),
+    cited_id   TEXT      PARENTFIELD(1),
+    location   DOUBLE    XPATH(@physicalLocation),
+    section    TEXT      XPATH(.)
 }
 
 ENTITY identifier (ZERO OR MORE, *root, XPATH(dynamic_data/cluster_related/identifiers/identifier)) {
-    wos_id             TEXT       PARENTFIELD(0),
-    type               TEXT       XPATH(@type),
-    value              TEXT       XPATH(@value)
+    wos_id  CHAR(15)      PARENTFIELD(0),
+    type    ENUM(idtype)  XPATH(@type),
+    value   TEXT          XPATH(@value)
 }
 
 ENTITY openaccess (ZERO OR MORE, *root, XPATH(dynamic_data/ic_related/oases/oas)) {
-    wos_id             TEXT       PARENTFIELD(0),
-    type               TEXT       XPATH(@type)
+    wos_id  CHAR(15)       PARENTFIELD(0),
+    status  ENUM(oastype)  XPATH(@type)
 }
 
 ENTITY funding (ZERO OR ONE, *root, XPATH(static_data/fullrecord_metadata/fund_ack/fund_text)) {
-    wos_id             TEXT       PARENTFIELD(0),
-    text         OPT   TEXT       PYTHON(paragraph_formatter)
+    wos_id       TEXT  PARENTFIELD(0),
+    text    OPT  TEXT  PYTHON(paragraph_formatter)
 }
 
 ENTITY conference (ZERO OR MORE, *root, XPATH(static_data/summary/conferences/conference)) {
-    *wos_id            TEXT       PARENTFIELD(0),
-    id           OPT   INTEGER    XPATH(@conf_id),
-    title        OPT   TEXT       XPATH(conf_titles/conf_title),
-    date_start   OPT   INTEGER    XPATH(conf_dates/conf_date/@conf_start) @ PYTHON(parse_date),
-    date_end     OPT   INTEGER    XPATH(conf_dates/conf_date/@conf_end) @ PYTHON(parse_date),
-    host         OPT   TEXT       XPATH(conf_locations/conf_location/conf_host),
-    city         OPT   TEXT       XPATH(conf_locations/conf_location/conf_city),
-    admin_div    OPT   TEXT       XPATH(conf_locations/conf_location/conf_state) @ PYTHON(parse_conf_admin_div),
-    country      OPT   TEXT       XPATH(conf_locations/conf_location/conf_state) @ PYTHON(parse_conf_country),
-    online       OPT   BOOLEAN    XPATH(conf_locations/conf_location/conf_state) @ PYTHON(parse_conf_online)
+    *wos_id          CHAR(15)  PARENTFIELD(0),
+    id          OPT  INTEGER   XPATH(@conf_id),
+    title       OPT  TEXT      XPATH(conf_titles/conf_title),
+    date_start  OPT  DATE      XPATH(conf_dates/conf_date/@conf_start) @ TOTEXT() @ PYTHON(parse_conf_date),
+    date_end    OPT  DATE      XPATH(conf_dates/conf_date/@conf_end) @ TOTEXT() @ PYTHON(parse_conf_date),
+    host        OPT  TEXT      XPATH(conf_locations/conf_location/conf_host),
+    city        OPT  TEXT      XPATH(conf_locations/conf_location/conf_city),
+    admin_div   OPT  TEXT      XPATH(conf_locations/conf_location/conf_state) @ TOTEXT() @ PYTHON(parse_conf_admin_div),
+    country     OPT  TEXT      XPATH(conf_locations/conf_location/conf_state) @ TOTEXT() @ PYTHON(parse_conf_country),
+    online      OPT  BOOLEAN   XPATH(conf_locations/conf_location/conf_state) @ TOTEXT() @ PYTHON(parse_conf_online)
 }
 
 VIEW publication_conference OF conference {
@@ -142,12 +144,12 @@ VIEW publication_conference OF conference {
 }
 
 ENTITY conference_sponsor (ZERO OR MORE, conference, XPATH(sponsors/sponsor)) {
-    id                  BIGINT    HASH(conf_id, name),
-    conf_id             INTEGER   PARENTFIELD(1),
-    name                TEXT      XPATH(.)
+    id       BIGINT   HASH(conf_id, name),
+    conf_id  INTEGER  PARENTFIELD(1),
+    name     TEXT     XPATH(.)
 }
 
-KVENTITY descriptor {
+KVENTITY descriptor (*root) {
     KV{
         doctype      XPATH(static_data/summary/doctypes/doctype),
         language     XPATH(static_data/fullrecord_metadata/languages/language),
@@ -158,10 +160,10 @@ KVENTITY descriptor {
         keyword      XPATH(static_data/fullrecord_metadata/keywords/keyword),
         kw_plus      XPATH(static_data/item/keywords_plus/keyword)
     },
-    HASH AS id,
+    HASH           AS id,
     PARENTFIELD(0) AS *wos_id,
-    VALUE AS text,
-    KEY AS type
+    VALUE          AS text,
+    KEY            AS type
 }
 
 VIEW publication_descriptor OF descriptor {
