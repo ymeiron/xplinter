@@ -58,7 +58,7 @@ class Table:
             if value is None:
                 self.buffer.write(b'\xFF\xFF\xFF\xFF')
                 continue
-            if (data_type == Data_type.text) or (data_type == Data_type.char):
+            if (data_type == Data_type.text) or (data_type == Data_type.char) or (data_type == Data_type.enum):
                 value = value.encode('utf-8')
                 string_size = len(value)
                 self.buffer.write(struct.pack('!i', string_size))
@@ -122,7 +122,7 @@ class Pgsql_driver(Driver):
         for enum in self._record.enums:
             items_with_quotes = ["'"+item+"'" for item in enum.__members__]
             item_list_string = '(' + ', '.join(items_with_quotes) + ')'
-            self.cur.execute(f'DROP TYPE IF EXISTS {enum.__name__}')
+            self.cur.execute(f'DROP TYPE IF EXISTS {enum.__name__} CASCADE')
             self.cur.execute(f'CREATE TYPE {enum.__name__} AS ENUM {item_list_string};')
         for entity_name, entity in self._record.entity_dict.items():
             if entity_name.startswith('*'): continue
@@ -139,6 +139,7 @@ class Pgsql_driver(Driver):
             else: field_name = field.name
             field_type, type_size = field.data_type, field.type_size
             type_string = field_type.name.upper()
+            if type_string == 'ENUM': type_string = field._meta
             if ((field_type == Data_type.char) or (field_type == Data_type.text)) and (type_size > 0):
                 type_string += f'({type_size})'
             columns_string += field_name + ' ' + type_string + ', '

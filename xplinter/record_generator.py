@@ -139,24 +139,26 @@ class Xplinter_interpreter(Interpreter):
         field_name = field_name_node.children[0].value
 
         # Flags
-        if flag_node:
-            flag = flag_node.children[0].value
-        else:
-            flag = None
+        flag = ''
+        if flag_node: flag = flag_node.children[0].value
 
         # Get type name and size (if exists)
         type_name_node  = field_type_node.children[0]
         type_name       = type_name_node.children[0].value
         type_size       = 0
+        meta            = ''
         if len(field_type_node.children) == 2:
-            type_size_node = field_type_node.children[1]
-            type_size      = int(type_size_node.children[0].value)
+            type_qualifier_node = field_type_node.children[1]
+            if type_name.upper() != 'ENUM':
+                type_size = int(type_qualifier_node.children[0].value)
+            else:
+                meta = type_qualifier_node.children[0].value
 
         # Deal with the generators (using a separate interpreter class)
         generator_list = self.generator_interp(generator_node)
 
         field = create_field_helper(field_name, type_name, type_size, generator_list, flag, self._module_globals)
-        field._meta = flag
+        field._meta = meta
 
         return field
 
@@ -207,7 +209,6 @@ class Xplinter_interpreter(Interpreter):
         children      = self.visit_children(tree)
         enum_name     = children[0][0].value
         item_list     = children[1]
-        print('OK I had enum statement')
         return enum.Enum(enum_name, [item[0].value for item in item_list])
 
 class Generate_record: # Create a singleton object in this module

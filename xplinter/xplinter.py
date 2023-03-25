@@ -17,7 +17,8 @@ class Data_type(Enum):
     boolean  = 8
     char     = 9
     xml      = 10
-    unknown  = 11
+    enum     = 11
+    unknown  = 12
 
     @staticmethod
     def code(data_type) -> Optional[str]: # Make data_type "Self" type in Python 3.11
@@ -29,7 +30,7 @@ def cast(value: str, data_type: Data_type) -> Any:
         return None
     if data_type in [Data_type.smallint, Data_type.integer, Data_type.bigint]:
         return int(value)
-    if (data_type == Data_type.text) or (data_type == Data_type.char):
+    if (data_type == Data_type.text) or (data_type == Data_type.char) or (data_type == Data_type.enum):
         if STRIP_STRINGS:
             return value.strip()
         return value
@@ -38,7 +39,7 @@ def cast(value: str, data_type: Data_type) -> Any:
         month = int(value[4:6])
         day   = int(value[6:])
         return datetime.date(year, month, day)
-    raise NotImplementedError
+    raise NotImplementedError('Cast error')
 
 def xml_serialize(node: etree._Element):
         return etree.tostring(node, method="c14n2", strip_text=True)

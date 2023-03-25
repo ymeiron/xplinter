@@ -14,10 +14,11 @@ field_descriptor: field_name [flag] field_type generator_list
 field_name: FIELD_NAME
 FIELD_NAME: "*"? CNAME
 !flag: "OPT"
-field_type: type_name ("(" type_size ")")?
+field_type: type_name ("(" type_qualifier ")")?
 type_name: UCASE_WORD
 UCASE_WORD: ("A".."Z")+
-type_size: INT
+type_qualifier: QUALIFIER
+QUALIFIER: ("_"|LETTER|DIGIT)+
 generator_list: generator ("@" generator)*
 generator: GENERATOR_TYPE "(" generator_content ")"
 GENERATOR_TYPE: "XPATH" | "PYTHON" | "TOTEXT" | "HASH" | "PARENTFIELD" | "NULL"
@@ -49,6 +50,7 @@ item: CNAME
 %import common.SH_COMMENT
 %ignore SH_COMMENT
 %import common.CNAME
-%import common.INT
+%import common.DIGIT
+%import common.LETTER
 WS.-1: /[ \t\f\r\n]/+
 %ignore WS
