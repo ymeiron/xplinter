@@ -1,5 +1,7 @@
 XPLINTER VERSION 0.0.1
 
+ENUM status { active, leave, suspended, retired }
+
 ROOT ENTITY branch (ONE) {
     id          BIGINT  HASH(name),
     name        TEXT    XPATH(name),
@@ -14,7 +16,7 @@ ENTITY employee (ZERO OR MORE, branch, XPATH(employees/employee)) {
     family_name TEXT    XPATH(name) @ TOTEXT() @ PYTHON(lambda name: name.split()[1]),
     given_name  TEXT    XPATH(name) @ TOTEXT() @ PYTHON(lambda name: name.split()[0]),
     hired       DATE    XPATH(hired),
-    status      TEXT    XPATH(@status),
+    status      ENUM(status) XPATH(@status),
     branch_id   BIGINT  PARENTFIELD(0),
     supervisor_id OPT INTEGER XPATH(supervisor/@id)
 }

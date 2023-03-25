@@ -190,7 +190,7 @@
         <name>Michael Roy</name>
         <supervisor id="1011">David MacDonald</supervisor>
       </employee>
-      <employee status="active">
+      <employee status="leave">
         <id>1015</id>
         <hired>20050704</hired>
         <name>Paul Lavoie</name>
