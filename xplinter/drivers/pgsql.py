@@ -87,11 +87,15 @@ class Table:
 
 
 class Pgsql_driver(Driver):
-    def __init__(self, db_config, reset: bool = False):
+    def __init__(self, db_config, max_records: int = 0, reset: bool = False):
         self.db_config = db_config
         self._open: bool = False
+        self.max_records = max_records
+        self.counter: int = 0
         if reset:
             raise NotImplementedError
+    def __del__(self):
+        self.close()
     def set_record(self, record: Record):
         self.table_buffers: Dict[str, Table] = {}
         tables = {}
@@ -158,12 +162,16 @@ class Pgsql_driver(Driver):
         for view_name, view in self._record.view_dict.items():
             for row in view.data:
                 self.table_buffers[view_name].add_row(row)
+        self.counter += 1
+        if (self.max_records > 0) and (self.counter > self.max_records):
+            self.flush()
     def flush(self):
         for table_name, table_buffer in self.table_buffers.items():
             table_buffer.finalize()
             self.cur.copy_expert(f'COPY {table_name} FROM STDIN WITH BINARY', table_buffer.buffer)
             table_buffer.reset()
         self.con.commit()
+        self.counter = 0
     def close(self):
         if not self._open: return
         self.flush()
