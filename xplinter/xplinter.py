@@ -2,6 +2,8 @@ from typing import List, Callable, Optional, Any, Dict, Tuple, Iterable
 from .driver import Driver
 from enum import Enum, EnumMeta
 from lxml import etree
+import logging
+from logging import Logger
 import pandas as pd, hashlib, struct, datetime
 
 STRIP_STRINGS: bool = True
@@ -199,7 +201,7 @@ class Entity:
         if self._xpath:
             return self._xpath(tree)
         return [tree]
-    def process(self, tree, parent_data: Any = None):
+    def process(self, tree, parent_data: Any = None, *, logger: Optional[Logger] = None):
         node_list = self.get_node_list(tree)
         if (self.cardinality == Cardinality.one) and (len(node_list) != 1):
             raise RuntimeError(f'Entity `{self.name}` expected exactly one item but got {len(node_list)}')
@@ -212,7 +214,9 @@ class Entity:
                     node_repr = etree.tounicode(node)
                     if len(node_repr) > 64: node_repr = node_repr[:64] + '...'
                     node_repr = repr(node_repr)
-                    print(f'Error: entity={self.name} field={field.name} node={node_repr} error={e}')
+                    error_string = f'Error: entity={self.name} field={field.name} node={node_repr} error={e}'
+                    if logger: logger.log(logging.INFO, error_string)
+                    else: print(error_string)
                     value = None
                 if (not value is None) and ((field.data_type == Data_type.text) or (field.data_type == Data_type.char)) and (field.type_size > 0):
                     if len(value) > field.type_size:
@@ -231,7 +235,7 @@ class Entity:
                 row[idx] = hash_function(data_to_hash)
             self.data.append(row)
             for child_entity in self.children:
-                child_entity.process(node, row)
+                child_entity.process(node, row, logger=logger)
     def to_dataframe(self, expose_hidden_fields: bool = False): # Move to CSV driver?
         columns = [field.name for field in self.field_list]
         df = pd.DataFrame(self.data, columns=columns)
@@ -297,7 +301,8 @@ class Kv_entity(Entity):
         else: data_type = Data_type.unknown # If it's PARENTFIELD, will be set in Record.commit
         super().add_field(Field(name, data_type))
         self.field_list[-1]._meta = sepcial_type
-    def process(self, tree, parent_data: Any = None):
+    def process(self, tree, parent_data: Any = None, *, logger: Optional[Logger] = None):
+        # Not actually using the logger yet...
         node_list = self.get_node_list(tree)
         if len(node_list) != 1:
             raise RuntimeError(f'Entity `{self.name}` expected exactly one item but got {len(node_list)}')
@@ -325,13 +330,14 @@ class Kv_entity(Entity):
         self.kv_extractor.reset()
 
 class Record:
-    def __init__(self, driver: Optional[Driver] = None):
+    def __init__(self, driver: Optional[Driver] = None, logger: Optional[Logger] = None):
         self.entity_dict: Dict[str,Entity] = {}
         self.root: Optional[Entity] = None
         self.view_dict: Dict[str,View] = {}
         self.enums: List[EnumMeta] = []
         self.committed: bool = False
         self.set_driver(driver)
+        self.logger = logger
     def __del__(self):
         if hasattr(self, 'driver'):
             self.driver.close()
@@ -383,7 +389,7 @@ class Record:
                         field.type_size = parent_field.type_size
         self.committed = True
     def process(self, tree):
-        self.root_entity.process(tree)
+        self.root_entity.process(tree, logger=self.logger)
         for view in self.view_dict.values():
             view.copy_data_from_entity()
     def write(self, reset=True):

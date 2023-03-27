@@ -4,6 +4,7 @@ from typing import List, Tuple, Optional
 from .driver import Driver
 from xplinter import Field, Hash_field, Normal_field, Parent_field, Data_type, Cardinality, Entity, Record, View, Kv_extractor, Kv_entity
 import importlib, os, enum
+from logging import Logger
 
 class Generator_interp(Interpreter):
     def generator_content(self, tree):
@@ -218,12 +219,13 @@ class Generate_record: # Create a singleton object in this module
             grammar = f.read()
         self.parser = Lark(grammar, start='program', parser='lalr')
         self.xplinter_interpreter = Xplinter_interpreter()
-    def __call__(self, content: str, commit: bool = True, driver: Optional[Driver] = None) -> Record:
+    def __call__(self, content: str, commit: bool = True, driver: Optional[Driver] = None, logger: Optional[Logger] = None) -> Record:
         parse_tree = self.parser.parse(content)
         record = self.xplinter_interpreter(parse_tree)
         if commit:
             record.commit()
         record.set_driver(driver)
+        record.logger = logger
         return record
 
 if __name__ == '__main__':
