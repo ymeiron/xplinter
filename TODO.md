@@ -3,7 +3,7 @@ TODO
 
 * Maybe make entity parent an optional argument with the default being the root entity. For no-parent entities, use "NULL" as parent.
 
-* Sometimes we want to parse a single element but have the Python function retun multiple fields (like the month element gives us month and potentially day, the conf_state gives us admin_div, country and online). Maybe something along:
+* Sometimes we want to parse a single element but have the Python function return multiple fields (like the month element gives us month and potentially day, the conf_state gives us admin_div, country and online). Maybe something along:
 
 -
 
@@ -21,3 +21,5 @@ TODO
     }
 
 With this syntax the resulting fields can be in a any order.
+
+* In KVENTITY, would be nice if KEY special field would be an enum

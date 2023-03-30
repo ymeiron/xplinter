@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xplinter"
-version = "0.0.0"
+version = "0.1.0"
 authors = [
   { name="Yohai Meiron", email="yohai.meiron@scinet.utoronto.ca" },
 ]
@@ -12,6 +12,7 @@ description = "An easy-to-use XML shredder"
 readme = "README.md"
 license = { file="LICENSE" }
 requires-python = ">=3.8"
+dependencies = [ "lxml", "lark" ]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
