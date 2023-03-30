@@ -2,9 +2,8 @@ from typing import List, Callable, Optional, Any, Dict, Tuple, Iterable
 from .driver import Driver
 from enum import Enum, EnumMeta
 from lxml import etree
-import logging
 from logging import Logger
-import pandas as pd, hashlib, struct, datetime
+import logging, hashlib, struct, datetime
 
 STRIP_STRINGS: bool = True
 
@@ -236,14 +235,6 @@ class Entity:
             self.data.append(row)
             for child_entity in self.children:
                 child_entity.process(node, row, logger=logger)
-    def to_dataframe(self, expose_hidden_fields: bool = False): # Move to CSV driver?
-        columns = [field.name for field in self.field_list]
-        df = pd.DataFrame(self.data, columns=columns)
-        if not expose_hidden_fields:
-            for column in columns:
-                if column.startswith('*'):
-                    del df[column]
-        return df
 
 class View:
     def __init__(self, name: str, entity_name: str, fields: List[Tuple[str,str]]):
@@ -263,9 +254,6 @@ class View:
         for row in self.entity.data:
             new_row = [row[i] for i in self.indices]
             self.data.append(new_row)
-    def to_dataframe(self):
-        df = pd.DataFrame(self.data, columns=self.columns)
-        return df
     def set_entity(self, entity: Entity):
         if self.entity:
             raise RuntimeError(f'View `{self.name}` already has an entity set')
