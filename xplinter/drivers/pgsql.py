@@ -92,8 +92,7 @@ class Pgsql_driver(Driver):
         self._open: bool = False
         self.max_records = max_records
         self.counter: int = 0
-        if reset:
-            raise NotImplementedError
+        self._reset = reset
     def __del__(self):
         self.close()
     def set_record(self, record: Record):
@@ -112,11 +111,11 @@ class Pgsql_driver(Driver):
                 tables[view_name].append((col, field.data_type))
             self.table_buffers[view_name] = Table(tables[view_name])
         self._record: Record = record
-        
     def open(self):
         self.con = psycopg2.connect(**self.db_config)
         self.cur = self.con.cursor()
         self._open = True
+        if self._reset: self.reset()
     def is_compatible(self) -> bool:
         raise NotImplementedError
     def is_empty(self) -> bool:
@@ -163,7 +162,7 @@ class Pgsql_driver(Driver):
             for row in view.data:
                 self.table_buffers[view_name].add_row(row)
         self.counter += 1
-        if (self.max_records > 0) and (self.counter > self.max_records):
+        if (self.max_records > 0) and (self.counter >= self.max_records):
             self.flush()
     def flush(self):
         for table_name, table_buffer in self.table_buffers.items():
