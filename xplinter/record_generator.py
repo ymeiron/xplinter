@@ -228,8 +228,4 @@ class Generate_record: # Create a singleton object in this module
         record.logger = logger
         return record
 
-if __name__ == '__main__':
-    generate_record = Generate_record()
-    with open('wos.xplinter', 'r') as f:
-        content = f.read()
-    record = generate_record(content, commit=False)
+generate_record = Generate_record()
