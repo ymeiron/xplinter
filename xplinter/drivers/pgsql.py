@@ -135,6 +135,7 @@ class Pgsql_driver(Driver):
             if view.entity is None: raise RuntimeError
             field_list = [view.entity.field_list[idx] for idx in view.indices]
             self.create_table(view_name, field_list, view.columns)
+        self.con.commit()
     def create_table(self, table_name: str, field_list: List[Field], alt_names: Optional[List[str]] = None):
         columns_string = ''
         for i, field in enumerate(field_list):
