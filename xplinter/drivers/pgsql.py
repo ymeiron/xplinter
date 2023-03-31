@@ -1,9 +1,13 @@
 from xplinter import Record, Field, Data_type
 from xplinter.driver import Driver
-
-import psycopg2, struct, datetime
+import struct, datetime
 from typing import List, Tuple, Dict, Optional
 from io import BytesIO
+
+try:
+    import psycopg2
+except ModuleNotFoundError:
+    raise ImportError('PostgreSQL driver depends on psycopg2') from None
 
 class Table:
     """Create a data structure that can be copied to a table in a PostgreSQL database.
