@@ -380,7 +380,7 @@ class Record:
         self.root_entity.process(tree, logger=self.logger)
         for view in self.view_dict.values():
             view.copy_data_from_entity()
-    def write(self, reset=True):
+    def write(self):
         if not hasattr(self, 'driver'):
             raise RuntimeError('Cannot write because no writing driver was set')
         self.driver.write()
