@@ -7,7 +7,12 @@ from io import BytesIO
 try:
     import psycopg2
 except ModuleNotFoundError:
-    raise ImportError('PostgreSQL driver depends on psycopg2') from None
+    try:
+        from psycopg2cffi import compat
+        compat.register()
+        import psycopg2
+    except ModuleNotFoundError:
+        raise ImportError('PostgreSQL driver depends on psycopg2') from None
 
 class Table:
     """Create a data structure that can be copied to a table in a PostgreSQL database.
