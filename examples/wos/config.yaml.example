@@ -1,0 +1,21 @@
+# Number of parallel workers
+n_workers:             30
+
+# Database configuration (keyword arguments for psycopg2.connect)
+db_config:
+  host:                "db.example.com" # Can also be the directory containing the socket on a local host
+  dbname:              "wos"
+  user:                "wos_admin"
+  password:            "xxxxxxxxxxxxxxxx"
+
+# Directory where the .xml.gz files are found
+input_data_dir: "/path/to/xmlgz/files"
+
+# Filename for logging
+log_filename:          "wos.log"
+
+# Number of seconds between main thread monitoring log outputs
+log_interval:          5
+
+# Number of records each worker keeps buffered before writing them to database
+internal_max_records:  200

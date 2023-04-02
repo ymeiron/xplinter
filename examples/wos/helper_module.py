@@ -34,3 +34,7 @@ def parse_conf_country(conf_state: Optional[str]) -> Optional[str]:
 
 def parse_conf_online(conf_state: Optional[str]) -> bool:
     return conf_state == 'ELECTR NETWORK'
+
+def parse_ref_year(year_text: Optional[str]) -> int:
+    if year_text:
+        return int(year_text[:4])
