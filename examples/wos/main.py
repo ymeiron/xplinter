@@ -115,7 +115,6 @@ if __name__ == '__main__':
                 cpu_percent = p.cpu_percent()
                 cpu_percent_list.append(cpu_percent)
             except:
-                print(f'no {i}')
                 cpu_percent_list.append(0.)
             try:
                 io_counters = p.io_counters()
