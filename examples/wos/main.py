@@ -108,10 +108,23 @@ if __name__ == '__main__':
         workers_alive = sum([p.is_alive() for p in processes])
         if not workers_alive:
             break
-        cpu_percent_list = [p.cpu_percent() for p in process_infos]
-        io_counters_list = [p.io_counters() for p in process_infos]
-        read_ops   = [counters.read_count for counters in io_counters_list]
-        read_bytes = [counters.read_bytes for counters in io_counters_list]
+
+        cpu_percent_list, io_counters_list, read_ops, read_bytes = [], [], [], []
+        for i, p in enumerate(process_infos):
+            try:
+                cpu_percent = p.cpu_percent()
+                cpu_percent_list.append(cpu_percent)
+            except:
+                print(f'no {i}')
+                cpu_percent_list.append(0.)
+            try:
+                io_counters = p.io_counters()
+                read_ops.append(io_counters.read_count)
+                read_bytes.append(io_counters.read_bytes)
+            except:
+                read_ops.append(0)
+                read_bytes.append(0)
+
         cpu_percent = psutil.cpu_percent(percpu=False)
         mem = psutil.virtual_memory().used/1024**3
         logging.info(f'cpus: {cpu_percent_list}')
