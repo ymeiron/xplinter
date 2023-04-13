@@ -11,6 +11,9 @@ db_config:
 # Directory where the .xml.gz files are found
 input_data_dir: "/path/to/xmlgz/files"
 
+# Glob pattern
+glob: "*.xml.gz"
+
 # Filename for logging
 log_filename:          "wos.log"
 

@@ -129,15 +129,31 @@ ENTITY funding (ZERO OR ONE, *root, XPATH(static_data/fullrecord_metadata/fund_a
 }
 
 ENTITY grant_data (ZERO OR MORE, *root, XPATH(static_data/fullrecord_metadata/fund_ack/grants/grant/grant_data/grantDataItem)) {
-    *wos_id             CHAR(15)  PARENTFIELD(0),
-    id                  TEXT     XPATH(grantid),
-    project_title       TEXT     XPATH(grantProjectTitle),
-    amount              INTEGER  XPATH(totalAwardAmount),
-    currency            CHAR(3)  XPATH(currency),
-    date_start          DATE     XPATH(startDate),
-    date_end            DATE     XPATH(endDate),
-    pi_name             TEXT     XPATH(principalInvestigators/principalInvestigator[1]),
-    pi_institution      TEXT     XPATH(principalInvestigators/principalInvestigatorInstitutions/principalInvestigatorInstitution)
+    *wos_id              CHAR(15) PARENTFIELD(0),
+    id                   TEXT     XPATH(grantid),
+    project_title   OPT  TEXT     XPATH(grantProjectTitle),
+    amount          OPT  INTEGER  XPATH(totalAwardAmount),
+    currency        OPT  CHAR(3)  XPATH(currency),
+    date_start      OPT  DATE     XPATH(startDate) @ TOTEXT() @ PYTHON(parse_grant_date),
+    date_end        OPT  DATE     XPATH(endDate) @ TOTEXT() @ PYTHON(parse_grant_date),
+    pi_institution  OPT  TEXT     XPATH(principalInvestigators/principalInvestigatorInstitutions/principalInvestigatorInstitution),
+    source               TEXT     XPATH(../../@grant_source)
+}
+
+ENTITY grant_agency (ZERO OR MORE, grant_data, XPATH(../../grant_agency)) {
+    grant_id        TEXT     PARENTFIELD(1),
+    agency_id       BIGINT   HASH(*name),
+    *name           TEXT     XPATH(.),
+    pref       OPT  BOOLEAN  XPATH(@pref) @ TOTEXT() @ PYTHON(lambda pref: pref=='Y')
+}
+
+VIEW agency OF grant_agency {
+    agency_id AS id, *name AS name
+}
+
+ENTITY grant_pi (ZERO OR MORE, grant_data, XPATH(principalInvestigators/principalInvestigator)) {
+    grant_id  TEXT  PARENTFIELD(1),
+    name      TEXT  XPATH(.)
 }
 
 VIEW publication_grant OF grant_data {

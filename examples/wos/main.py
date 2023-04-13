@@ -3,7 +3,7 @@ from xplinter import Record
 from xplinter.drivers.pgsql import Pgsql_driver
 from lxml import etree
 from typing import IO
-import os, gzip, multiprocessing as mp, glob, logging, logging.handlers, psutil, yaml, time
+import os, gzip, multiprocessing as mp, glob, logging, logging.handlers, psutil, yaml, time, psycopg2
 
 class Preamble_injector:
     def __init__(self, file: IO, preamble: bytes, skip: int = 0):
@@ -41,6 +41,13 @@ def postprocess(record: Record) -> None:
                 author_address.data.append([author_id, address_id])
         except:
             pass
+
+def finalize():
+    con = psycopg2.connect(**config['db_config'])
+    con.set_session(autocommit=True)
+    cur = con.cursor()
+    with open(os.path.join(my_dir_name, 'finalize.sql'), 'r') as f:
+        cur.execute(f.read())
 
 def worker(rank: int):
     logger.log(logging.INFO, f'[worker {rank:02d}] Started')
@@ -93,7 +100,7 @@ if __name__ == '__main__':
     logger.setLevel(logging.INFO)
     logger.log(logging.INFO, '[main] WoS shredding application started')
 
-    filenames = sorted(glob.glob(os.path.join(config['input_data_dir'], '*.xml.gz')))
+    filenames = sorted(glob.glob(os.path.join(config['input_data_dir'], config['glob'])))
     if config['reverse']: filenames = filenames[::-1]
     for filename in filenames: queue.put(filename)
     for rank in range(config['n_workers']): queue.put(None)
@@ -140,4 +147,6 @@ if __name__ == '__main__':
 
     counter = sum(record_counts)
     logging.info(f'counter: {counter: 9d}')
+    logging.info(f'Now executing finalizing SQL commands')
+    finalize()
     logging.info(f'All done')

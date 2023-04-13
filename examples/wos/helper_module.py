@@ -38,3 +38,24 @@ def parse_conf_online(conf_state: Optional[str]) -> bool:
 def parse_ref_year(year_text: Optional[str]) -> int:
     if year_text:
         return int(year_text[:4])
+
+def parse_grant_date(date_str: str) -> Optional[datetime.date]:
+    if date_str is None: return None
+    if len(date_str) == 10: # with dashes (2023-01-01)
+        year  = int(date_str[:4])
+        month = int(date_str[5:7])
+        day   = int(date_str[8:])
+        return datetime.date(year, month, day)
+    elif len(date_str) == 8: # without dashes (20230101)
+        year  = int(date_str[:4])
+        month = int(date_str[4:6])
+        day   = int(date_str[6:])
+        return datetime.date(year, month, day)
+    elif len(date_str) == 6 and date_str.endswith('--'): # Some Japanese grants have this format (2023--)
+        year  = int(date_str[:4])
+        return datetime.date(year, 1, 1)
+    elif len(date_str) == 4: # Some Russian grants have this format (2023)
+        year  = int(date_str)
+        return datetime.date(year, 1, 1)
+    else:
+        raise ValueError('Date format not understood')
