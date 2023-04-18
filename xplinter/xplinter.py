@@ -200,6 +200,11 @@ class Entity:
         if self._xpath:
             return self._xpath(tree)
         return [tree]
+    @staticmethod
+    def node_repr(node: etree._Element) -> str:
+        s = etree.tounicode(node)
+        if len(s) > 64: s = s[:64] + '...'
+        return repr(s)
     def process(self, tree, parent_data: Any = None, *, logger: Optional[Logger] = None):
         node_list = self.get_node_list(tree)
         if (self.cardinality == Cardinality.one) and (len(node_list) != 1):
@@ -210,16 +215,16 @@ class Entity:
                 try:
                     value = field.process(node)
                 except Exception as e:
-                    node_repr = etree.tounicode(node)
-                    if len(node_repr) > 64: node_repr = node_repr[:64] + '...'
-                    node_repr = repr(node_repr)
-                    error_string = f'Error: entity={self.name} field={field.name} node={node_repr} error={e}'
+                    error_string = f'Error: entity={self.name} field={field.name} node={self.node_repr(node)} error={e}'
                     if logger: logger.log(logging.INFO, error_string)
                     else: print(error_string)
                     value = None
                 if (not value is None) and ((field.data_type == Data_type.text) or (field.data_type == Data_type.char)) and (field.type_size > 0):
                     if len(value) > field.type_size:
-                        raise RuntimeError(f'Value of field `{field.name}` is "{value}" and too long (maximum {field.type_size} characters)')
+                        error_string = f'Error: entity={self.name} field={field.name} node={self.node_repr(node)} error="{value}" and too long (field size is {field.type_size})'
+                        if logger: logger.log(logging.INFO, error_string)
+                        else: print(error_string)
+                        value = value[:field.type_size]
                 if isinstance(field, Parent_field):
                     value = parent_data[field.column_number]
                 row.append(value)

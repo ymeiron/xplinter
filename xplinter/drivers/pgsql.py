@@ -88,6 +88,7 @@ class Table:
             try:
                 data_obj = value_to_bytes(value, field.data_type)
             except struct.error as e:
+                # Error reporting should ideally be in Entity.process, and we should be able to trust everything will work here or raise an error...
                 field_name = field.name
                 if self.aliases: field_name = self.aliases[i]
                 error_string = f'Error: table={self.name} field={field_name} value={value} error={e}'
