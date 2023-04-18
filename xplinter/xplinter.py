@@ -383,5 +383,5 @@ class Record:
     def write(self):
         if not hasattr(self, 'driver'):
             raise RuntimeError('Cannot write because no writing driver was set')
-        self.driver.write()
+        self.driver.write(logger=self.logger)
         self.reset()

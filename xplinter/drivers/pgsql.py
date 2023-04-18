@@ -1,8 +1,9 @@
 from xplinter import Record, Field, Data_type
 from xplinter.driver import Driver
-import struct, datetime
+import struct, datetime, logging
 from typing import List, Tuple, Dict, Optional
 from io import BytesIO
+from logging import Logger
 
 try:
     import psycopg2
@@ -13,6 +14,25 @@ except ModuleNotFoundError:
         import psycopg2
     except ModuleNotFoundError:
         raise ImportError('PostgreSQL driver depends on psycopg2') from None
+
+def value_to_bytes(value, data_type):
+    if value is None:
+        return b'\xFF\xFF\xFF\xFF'
+    if (data_type == Data_type.text) or (data_type == Data_type.char) or (data_type == Data_type.enum):
+        value = value.encode('utf-8')
+        string_size = len(value)
+        return struct.pack('!i', string_size) + value
+    if data_type == Data_type.xml:
+        blob_size = len(value)
+        return struct.pack('!i', blob_size) + value
+    if data_type == Data_type.date:
+        date_int_repr = (value - Table.epoch).days
+        return struct.pack('!ii', 4, date_int_repr)
+    field_type_code = Data_type.code(data_type)
+    if field_type_code is None:
+        raise NotImplementedError
+    field_size = struct.calcsize(field_type_code)
+    return struct.pack(f'!i{field_type_code}', field_size, value)
 
 class Table:
     """Create a data structure that can be copied to a table in a PostgreSQL database.
@@ -28,7 +48,7 @@ class Table:
         A byte buffer containing the table data.
     """
     epoch = datetime.date(2000, 1, 1)
-    def __init__(self, fields: List[Tuple[str,Data_type]]):
+    def __init__(self, fields: List[Tuple[str,Data_type]], name: str = ''):
         """Construct a Table object.
         
         Parameters
@@ -36,6 +56,8 @@ class Table:
         fields : List[Tuple[str,Data_type]]
             Each element in this list is a tuple, where the first element is the
             name of the field, the second is a single data type.
+        name : str = ''
+            Table name for the purpose of logging.
         """
 
         self.header = b'\x50\x47\x43\x4F\x50\x59\x0A\xFF\x0D\x0A\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -44,6 +66,7 @@ class Table:
         self.fields = fields
         self.field_count_bytes = struct.pack('!h', len(fields))
         self.counter = 0
+        self.name = name
 
     def reset(self):
         del self.buffer # Do we really need to delete? Can't we reuse?
@@ -51,7 +74,7 @@ class Table:
         self.buffer.write(self.header)
         self.counter = 0
 
-    def add_row(self, datum: list):
+    def add_row(self, datum: list, *, logger: Optional[Logger] = None):
         """Add one row to the table.
 
         Parameters
@@ -64,29 +87,14 @@ class Table:
             if field_name.startswith('*'):
                continue
             value = datum[i]
-            if value is None:
-                self.buffer.write(b'\xFF\xFF\xFF\xFF')
-                continue
-            if (data_type == Data_type.text) or (data_type == Data_type.char) or (data_type == Data_type.enum):
-                value = value.encode('utf-8')
-                string_size = len(value)
-                self.buffer.write(struct.pack('!i', string_size))
-                self.buffer.write(value)
-                continue
-            if data_type == Data_type.xml:
-                blob_size = len(value)
-                self.buffer.write(struct.pack('!i', blob_size))
-                self.buffer.write(value)
-                continue
-            if data_type == Data_type.date:
-                date_int_repr = (value - Table.epoch).days
-                self.buffer.write(struct.pack('!ii', 4, date_int_repr))
-                continue
-            field_type_code = Data_type.code(data_type)
-            if field_type_code is None:
-                raise NotImplementedError
-            field_size = struct.calcsize(field_type_code)
-            self.buffer.write(struct.pack(f'!i{field_type_code}', field_size, value))
+            try:
+                data_obj = value_to_bytes(value, data_type)
+            except struct.error as e:
+                error_string = f'Error: table={self.name} field={field_name} value={value} error={e}'
+                if logger: logger.log(logging.INFO, error_string)
+                else: print(error_string)
+                data_obj = b'\xFF\xFF\xFF\xFF'
+            self.buffer.write(data_obj)
         self.counter += 1
 
     def finalize(self):
@@ -111,14 +119,14 @@ class Pgsql_driver(Driver):
             if entity_name.startswith('*'):
                 continue
             tables[entity_name] = [(field.name, field.data_type) for field in entity.field_list if not field.name.startswith('*')]
-            self.table_buffers[entity_name] = Table(tables[entity_name])
+            self.table_buffers[entity_name] = Table(tables[entity_name], name=entity_name)
         for view_name, view in record.view_dict.items():
             if view.entity is None: raise RuntimeError
             tables[view_name] = []
             for col, idx in zip(view.columns, view.indices):
                 field = view.entity.field_list[idx]
                 tables[view_name].append((col, field.data_type))
-            self.table_buffers[view_name] = Table(tables[view_name])
+            self.table_buffers[view_name] = Table(tables[view_name], name=view_name)
         self._record: Record = record
     def open(self):
         self.con = psycopg2.connect(**self.db_config)
@@ -160,17 +168,17 @@ class Pgsql_driver(Driver):
         columns_string = columns_string[:-2] # Get rid of last comma and space
         self.cur.execute(f'DROP TABLE IF EXISTS {table_name} CASCADE')
         self.cur.execute(f'CREATE TABLE {table_name} ({columns_string})')
-    def write(self):
+    def write(self, *, logger: Optional[Logger] = None):
         if not self._open: raise RuntimeError('PostgreSQL driver `write` attempted while driver not open')
         for entity_name, entity in self._record.entity_dict.items():
             if entity_name.startswith('*'):
                 continue
             for _row in entity.data:
                 row = [_row[i] for i in entity.visible_field_inidices]
-                self.table_buffers[entity_name].add_row(row)
+                self.table_buffers[entity_name].add_row(row, logger=logger)
         for view_name, view in self._record.view_dict.items():
             for row in view.data:
-                self.table_buffers[view_name].add_row(row)
+                self.table_buffers[view_name].add_row(row, logger=logger)
         self.counter += 1
         if (self.max_records > 0) and (self.counter >= self.max_records):
             self.flush()
