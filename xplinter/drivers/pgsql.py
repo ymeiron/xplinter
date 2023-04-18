@@ -20,7 +20,7 @@ def value_to_bytes(value, data_type):
         return b'\xFF\xFF\xFF\xFF'
     if (data_type == Data_type.text) or (data_type == Data_type.char) or (data_type == Data_type.enum):
         value = value.encode('utf-8')
-        string_size = len(value)
+        string_size = len(value) # Size check is performed in Entity.process
         return struct.pack('!i', string_size) + value
     if data_type == Data_type.xml:
         blob_size = len(value)
@@ -48,14 +48,13 @@ class Table:
         A byte buffer containing the table data.
     """
     epoch = datetime.date(2000, 1, 1)
-    def __init__(self, fields: List[Tuple[str,Data_type]], name: str = ''):
+    def __init__(self, fields: List[Field], aliases: List[str] = [], name: str = ''):
         """Construct a Table object.
         
         Parameters
         ----------
-        fields : List[Tuple[str,Data_type]]
-            Each element in this list is a tuple, where the first element is the
-            name of the field, the second is a single data type.
+        fields : List[Field]
+            List of fields in the table.
         name : str = ''
             Table name for the purpose of logging.
         """
@@ -66,6 +65,7 @@ class Table:
         self.fields = fields
         self.field_count_bytes = struct.pack('!h', len(fields))
         self.counter = 0
+        self.aliases = aliases
         self.name = name
 
     def reset(self):
@@ -83,13 +83,13 @@ class Table:
         """
 
         self.buffer.write(self.field_count_bytes)
-        for i, (field_name, data_type) in enumerate(self.fields):
-            if field_name.startswith('*'):
-               continue
+        for i, field in enumerate(self.fields):
             value = datum[i]
             try:
-                data_obj = value_to_bytes(value, data_type)
+                data_obj = value_to_bytes(value, field.data_type)
             except struct.error as e:
+                field_name = field.name
+                if self.aliases: field_name = self.aliases[i]
                 error_string = f'Error: table={self.name} field={field_name} value={value} error={e}'
                 if logger: logger.log(logging.INFO, error_string)
                 else: print(error_string)
@@ -114,19 +114,18 @@ class Pgsql_driver(Driver):
         self.close()
     def set_record(self, record: Record):
         self.table_buffers: Dict[str, Table] = {}
-        tables = {}
         for entity_name, entity in record.entity_dict.items():
             if entity_name.startswith('*'):
                 continue
-            tables[entity_name] = [(field.name, field.data_type) for field in entity.field_list if not field.name.startswith('*')]
-            self.table_buffers[entity_name] = Table(tables[entity_name], name=entity_name)
+            field_list = [field for field in entity.field_list if not field.name.startswith('*')]
+            self.table_buffers[entity_name] = Table(field_list, name=entity_name)
         for view_name, view in record.view_dict.items():
             if view.entity is None: raise RuntimeError
-            tables[view_name] = []
-            for col, idx in zip(view.columns, view.indices):
+            field_list = []
+            for idx in view.indices:
                 field = view.entity.field_list[idx]
-                tables[view_name].append((col, field.data_type))
-            self.table_buffers[view_name] = Table(tables[view_name], name=view_name)
+                field_list.append(field)
+            self.table_buffers[view_name] = Table(field_list, view.columns, name=view_name)
         self._record: Record = record
     def open(self):
         self.con = psycopg2.connect(**self.db_config)
