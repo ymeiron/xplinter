@@ -46,8 +46,27 @@ def finalize():
     con = psycopg2.connect(**config['db_config'])
     con.set_session(autocommit=True)
     cur = con.cursor()
+
     with open(os.path.join(my_dir_name, 'finalize.sql'), 'r') as f:
-        cur.execute(f.read())
+        content = f.read()
+
+    blocks = ['']
+    lines = content.splitlines()
+    for line in lines:
+        if line.startswith('-- @xplinter'):
+            blocks.append(line)
+            blocks.append('')
+        elif line.startswith('--'):
+            continue
+        else:
+            blocks[-1] += line + '\n'
+
+    for block in blocks:
+        block = block.strip()
+        if block.startswith('-- @xplinter'):
+            logger.log(logging.INFO, block[13:])
+        elif len(block) > 0:
+            cur.execute(block)
 
 def worker(rank: int):
     logger.log(logging.INFO, f'[worker {rank:02d}] Started')
