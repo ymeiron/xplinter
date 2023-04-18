@@ -180,7 +180,6 @@ VIEW publication_conference OF conference {
 }
 
 ENTITY conference_sponsor (ZERO OR MORE, conference, XPATH(sponsors/sponsor)) {
-    id       BIGINT   HASH(conf_id, name),
     conf_id  INTEGER  PARENTFIELD(1),
     name     TEXT     XPATH(.)
 }
