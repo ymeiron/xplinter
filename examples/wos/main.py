@@ -120,7 +120,7 @@ if __name__ == '__main__':
     logger.log(logging.INFO, '[main] WoS shredding application started')
 
     filenames = sorted(glob.glob(os.path.join(config['input_data_dir'], config['glob'])))
-    if config['reverse']: filenames = filenames[::-1]
+    if config.get('reverse'): filenames = filenames[::-1]
     for filename in filenames: queue.put(filename)
     for rank in range(config['n_workers']): queue.put(None)
 
