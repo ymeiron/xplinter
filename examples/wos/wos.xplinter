@@ -48,14 +48,18 @@ VIEW publisher OF *root {
 }
 
 ENTITY author (ONE OR MORE, *root, XPATH(static_data/summary/names/name)) {
-    id             BIGINT    HASH(wos_id, full_name, seq_no),
-    wos_id         CHAR(15)  PARENTFIELD(0),
-    full_name      TEXT      XPATH(full_name),
-    seq_no         SMALLINT  XPATH(@seq_no),
-    reprint    OPT BOOLEAN   XPATH(@reprint) @ TOTEXT() @ PYTHON(lambda reprint: reprint=='Y'),
-    email      OPT TEXT      XPATH(email_addr),
-    orcid      OPT TEXT      XPATH(orcid_id_tr),
-    *addr_no   OPT TEXT      XPATH(@addr_no)
+    id                BIGINT    HASH(wos_id, full_name, seq_no),
+    wos_id            CHAR(15)  PARENTFIELD(0),
+    full_name         TEXT      XPATH(full_name),
+    seq_no            SMALLINT  XPATH(@seq_no),
+    reprint       OPT BOOLEAN   XPATH(@reprint) @ TOTEXT() @ PYTHON(lambda reprint: reprint=='Y'),
+    email         OPT TEXT      XPATH(email_addr),
+    orcid         OPT TEXT      XPATH(@orcid_id),
+    orcid_tr      OPT TEXT      XPATH(@orcid_id_tr),
+    rid           OPT TEXT      XPATH(@r_id),
+    rid_tr        OPT TEXT      XPATH(@r_id_tr),
+    claim_status  OPT BOOLEAN   XPATH(@claim_status) @ TOTEXT() @ PYTHON(lambda claim_status: claim_status=='true'),
+    *addr_no      OPT TEXT      XPATH(@addr_no)
 }
 
 ENTITY contributor (ZERO OR MORE, *root, XPATH(static_data/contributors/contributor/name)) {
@@ -77,6 +81,18 @@ ENTITY address (ONE OR MORE, *root, XPATH(static_data/fullrecord_metadata/addres
     *addr_no     OPT TEXT    XPATH(@addr_no)
 }
 
+ENTITY organization (ONE OR MORE, address, XPATH(organizations/organization)) {
+    id               BIGINT  HASH(name, pref),
+    name             TEXT    XPATH(.),
+    pref         OPT CHAR    XPATH(@pref),
+    *address_id      BIGINT  PARENTFIELD(0)
+}
+
+VIEW organization_address OF organization {
+    id AS organization_id,
+    *address_id AS address_id
+}
+
 # The values are filled in postprocessing.
 ENTITY author_address (ONE OR MORE) {
     author_id   BIGINT  NULL(),
@@ -95,6 +111,7 @@ ENTITY reference (ZERO OR MORE, *root, XPATH(static_data/fullrecord_metadata/ref
     author            OPT TEXT      XPATH(citedAuthor),
     year              OPT SMALLINT  XPATH(year) @ TOTEXT() @ PYTHON(parse_ref_year),
     source            OPT TEXT      XPATH(citedWork),
+    url               OPT TEXT      XPATH(citedURL),
     volume            OPT TEXT      XPATH(volume),
     page              OPT TEXT      XPATH(page),
     title             OPT TEXT      XPATH(citedTitle),
@@ -193,7 +210,8 @@ KVENTITY descriptor (*root) {
         subject      XPATH(static_data/fullrecord_metadata/category_info/subjects/subject[@ascatype="traditional"]),
         subject_ext  XPATH(static_data/fullrecord_metadata/category_info/subjects/subject[@ascatype="extended"]),
         keyword      XPATH(static_data/fullrecord_metadata/keywords/keyword),
-        kw_plus      XPATH(static_data/item/keywords_plus/keyword)
+        kw_plus      XPATH(static_data/item/keywords_plus/keyword),
+        sdg_goal     XPATH(dynamic_data/citation_related/SDG/sdg_category)
     },
     HASH           AS id,
     PARENTFIELD(0) AS *wos_id,

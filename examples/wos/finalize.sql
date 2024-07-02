@@ -35,6 +35,14 @@ CREATE TABLE _address AS
 DROP TABLE address;
 ALTER TABLE _address RENAME TO address;
 
+-- @xplinter Removing duplicates from organization
+DROP TABLE IF EXISTS _organization;
+CREATE TABLE _organization AS
+    SELECT DISTINCT ON (id) *
+    FROM organization;
+DROP TABLE organization;
+ALTER TABLE _organization RENAME TO organization;
+
 -- @xplinter Removing duplicates from conference
 DROP TABLE IF EXISTS _conference;
 CREATE TABLE _conference AS
