@@ -35,7 +35,7 @@ def postprocess(record: Record) -> None:
     for row in author.data:
         try:
             author_id = row[0]
-            addr_no_list = row[7].split()
+            addr_no_list = row[11].split()
             for addr_no in addr_no_list:
                 address_id = address.data[int(addr_no) - 1][0]
                 author_address.data.append([author_id, address_id])
